@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#081a15" />
+<title>BIOLERN — Perjalanan Fotosintesis</title>
+<style>
+:root{--bg:#081a15;--panel:#102820;--panel2:#15352b;--line:rgba(211,235,220,.13);--text:#edf6ef;--muted:#a9c2b2;--green:#69d69a;--green2:#2ca96c;--gold:#f2c96d;--red:#f18c82;--blue:#83c8e8;--shadow:0 14px 40px rgba(0,0,0,.22);--radius:16px}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:#020a07}
+body{color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:12px}
+.eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.main,.sidebar,.modal,.info-copy{scrollbar-width:thin;scrollbar-color:#2f5a47 transparent}
+
+/* ===== Bingkai tetap 16:9 (1280x720) yang diskalakan mengikuti layar ===== */
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;margin:-360px 0 0 -640px;transform-origin:center center;overflow:hidden;background:radial-gradient(900px 520px at 75% -10%,#174333 0%,transparent 65%),var(--bg)}
+#app{position:absolute;inset:0}
+#rotateHint{position:fixed;left:10px;right:10px;top:10px;z-index:200;background:#e2f8e8;color:#103522;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:700;text-align:center}
+
+.app{display:flex;flex-direction:column;height:100%}
+.topbar{height:56px;flex:none;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);background:rgba(7,23,18,.92)}
+.brand{display:flex;align-items:center;gap:11px;font-weight:900;letter-spacing:.06em;line-height:1.15}
+.brand-mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#8ce5a9,#1c9d68);display:grid;place-items:center;color:#082219;font-size:19px;box-shadow:0 6px 20px #2aa66a44}
+.brand small{display:block;color:var(--muted);font-size:9.5px;letter-spacing:.08em;font-weight:600}
+.top-title{font-weight:850;letter-spacing:.14em;font-size:12px;color:#cfe6d6}
+.top-right{display:flex;align-items:center;gap:12px}
+.timer{font-variant-numeric:tabular-nums;color:#d5ebdd;font-size:13px}
+.student-chip{border:1px solid var(--line);padding:6px 12px;border-radius:30px;color:#dff3e5;font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:236px minmax(0,1fr)}
+.sidebar{border-right:1px solid var(--line);padding:14px 12px;background:rgba(9,29,22,.45);overflow-y:auto}
+.side-label{font-size:10px;letter-spacing:.14em;color:#769787;font-weight:800;padding:0 10px;margin:2px 0 8px}
+.stage-nav{display:flex;flex-direction:column;gap:3px}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;color:#b9cfc1;background:transparent;padding:7px 9px;border-radius:11px;transition:.15s}
+.nav-item:hover:not(:disabled){background:#15362b;color:#fff}
+.nav-item.active{background:linear-gradient(90deg,#1b4936,#173a2d);border-color:#3d7959;color:#fff}
+.nav-item.done .nav-num{background:#2d9863;color:#fff}
+.nav-item:disabled{opacity:.42}
+.nav-num{width:28px;height:28px;border-radius:9px;background:#20392f;display:grid;place-items:center;font-weight:800;font-size:11px;flex:none}
+.nav-copy{min-width:0}.nav-copy strong{display:block;font-size:12px;line-height:1.25}.nav-copy span{display:block;color:#91ad9c;font-size:10px;line-height:1.25}
+.nav-state{margin-left:auto;color:var(--green);font-size:12px}
+.progress-box{margin:14px 4px 0;padding:12px;border:1px solid var(--line);border-radius:13px;background:#10271f}
+.progress-head{display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px}
+.progress-track{height:7px;background:#284137;border-radius:20px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#36b879,#a5e6a7);border-radius:20px;transition:width .3s}
+.main{padding:20px 34px 36px;min-width:0;overflow-y:auto}
+
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.page-head h1{font-size:30px;line-height:1.12;letter-spacing:-.03em;margin:4px 0 6px}
+.page-head p{margin:0;color:var(--muted);max-width:720px}
+.tag{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid #37664d;border-radius:30px;color:#b9e6c6;background:#143528;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.tag.gold{border-color:#77643a;background:#342e1b;color:#f0dfaa}
+.card{background:linear-gradient(150deg,rgba(22,55,43,.95),rgba(14,38,29,.97));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:18px}
+.grid{display:grid;gap:14px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.section-title{font-size:16px;font-weight:850;margin:0 0 6px;letter-spacing:-.01em}
+.section-sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.btn{border:1px solid transparent;border-radius:12px;padding:10px 15px;font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:10px}
+.btn-primary{background:linear-gradient(135deg,#83e2a4,#35b778);color:#092319;box-shadow:0 7px 20px #27ad6840}
+.btn-primary:hover:not(:disabled){filter:brightness(1.07)}
+.btn-secondary{background:#1b4033;color:#d8f0df;border-color:#37644d}
+.btn-ghost{background:rgba(8,26,20,.55);color:#c9ddcf;border-color:rgba(211,235,220,.28)}
+.btn-ghost:hover{background:#15362b;color:#fff}
+.btn-gold{background:linear-gradient(135deg,#f4dc94,#d4a846);color:#30230b}
+.btn-danger{background:#7a2d27;color:#ffe3de;border-color:#a8544b}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.input-wrap{display:flex;flex-direction:column;gap:5px;margin:8px 0}
+.input-wrap label{font-size:12px;color:#c3d9ca;font-weight:700}
+.field,.select,.textarea{width:100%;background:#0b2119;border:1px solid #355747;border-radius:11px;color:#f0f7f1;padding:10px 12px;outline:none}
+.field:focus,.select:focus,.textarea:focus{border-color:#66ca8e;box-shadow:0 0 0 3px #53c88620}
+.textarea{min-height:100px;resize:vertical}
+.field::placeholder,.textarea::placeholder{color:#6f8d7c}
+.callout{padding:12px 14px;border:1px solid #39634c;background:#143528;border-radius:13px;color:#cce6d3;font-size:13px}
+.callout.gold{border-color:#77643a;background:#342e1b;color:#f0dfaa}
+.callout.blue{border-color:#365c70;background:#142b36;color:#c6e3f0}
+.stat{padding:15px;border-radius:15px;background:#0e271e;border:1px solid var(--line)}
+.stat strong{font-size:24px;display:block;line-height:1.15}.stat span{font-size:11px;color:var(--muted)}
+
+/* ===== Halaman awal ===== */
+.welcome{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 72% 42%,#2b895a 0%,#174a35 30%,#0c281e 70%)}
+.cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.hero-fallback{position:absolute;right:140px;top:50%;transform:translateY(-50%);font-size:230px;filter:drop-shadow(0 20px 30px #03150e99)}
+.cover-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,20,15,.97) 0%,rgba(6,20,15,.9) 36%,rgba(6,20,15,.42) 60%,rgba(6,20,15,0) 82%)}
+.welcome-copy{position:absolute;left:56px;top:0;bottom:0;width:580px;display:flex;flex-direction:column;justify-content:center}
+.brandline{display:flex;align-items:center;gap:10px;font-size:13px;color:#cfe6d6}
+.brand-pill{padding:4px 11px;border-radius:30px;border:1px solid #4a8d68;background:#143528;color:#9be8b9;font-weight:900;letter-spacing:.14em;font-size:12px}
+.welcome h1{font-size:64px;line-height:.98;letter-spacing:-.04em;margin:16px 0 12px;font-weight:900;text-shadow:0 4px 24px #0008}
+.welcome-copy>p{font-size:15px;color:#c4dacb;max-width:520px;margin:0}
+.welcome-form{margin-top:18px;padding:16px 18px 18px;border-radius:16px;background:rgba(10,32,25,.84);border:1px solid var(--line);backdrop-filter:blur(8px);max-width:540px}
+.welcome-form h3{margin:2px 0 2px;font-size:16px}
+.form-row{display:grid;grid-template-columns:1.5fr 1fr;gap:12px}
+.welcome-actions{display:flex;gap:10px;margin-top:14px;align-items:center}
+.welcome-note{font-size:11px;color:#8fae9c;margin-top:12px}
+
+/* ===== Halaman informasi ===== */
+.info{position:absolute;inset:0;display:grid;grid-template-columns:470px minmax(0,1fr);background:radial-gradient(800px 500px at 20% 50%,#1d5a41 0%,transparent 70%),var(--bg)}
+.info-photo{display:grid;place-items:center;padding:36px}
+.photo-frame{width:380px;height:520px;border-radius:30px;border:1px solid #315946;background:radial-gradient(circle at 50% 38%,#2b895a 0%,#174a35 45%,#0c281e 100%);box-shadow:0 30px 80px #0007;display:grid;place-items:end center;overflow:hidden}
+.photo-frame img{width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block}
+.dev-initials{align-self:center;font-size:96px;font-weight:900;color:#bfeccd}
+.info-copy{padding:34px 48px 34px 8px;overflow-y:auto;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.info-copy h1{font-size:34px;margin:2px 0 0;letter-spacing:-.03em;line-height:1.1}
+.id-list{margin:10px 0 0;display:grid;gap:10px}
+.id-list>div{display:grid;grid-template-columns:170px 1fr;gap:10px;padding-top:10px;border-top:1px solid var(--line)}
+.id-list>div:first-child{border-top:0;padding-top:0}
+.id-list dt{color:var(--muted);font-size:12px;font-weight:700}.id-list dd{margin:0;font-weight:800;font-size:15px}
+.declare{border-color:#77643a;background:linear-gradient(150deg,#3a321c,#272313)}
+.declare h3{margin:4px 0 8px;font-size:14px;letter-spacing:.1em;color:var(--gold)}
+.declare p{margin:0;color:#f0e4bc;font-size:15px;line-height:1.7}
+
+/* ===== Tujuan pembelajaran ===== */
+.pill-row{display:flex;gap:10px;flex-wrap:wrap}
+.dim{display:inline-flex;align-items:center;gap:9px;padding:10px 16px;border-radius:30px;background:#143528;border:1px solid #3d7959;color:#d8f3df;font-weight:800;font-size:14px}
+.dim:before{content:"✦";color:var(--green)}
+.goal-text{margin:0;font-size:17px;line-height:1.75;color:#eaf5ec;border-left:3px solid var(--green);padding-left:16px}
+.exp-card{padding:16px;border:1px solid var(--line);background:#10281f;border-radius:14px;font-size:14px;line-height:1.65;color:#d4e5d9}
+.exp-card strong{display:block;font-size:19px;color:var(--gold);margin-bottom:4px}
+
+/* ===== Bacaan ===== */
+.topic-list{display:grid;gap:8px;position:sticky;top:0}
+.topic{border:1px solid var(--line);background:#10281f;border-radius:13px;overflow:hidden}
+.topic-head{display:flex;align-items:center;gap:11px;padding:11px 12px;width:100%;background:none;border:0;color:inherit;text-align:left}
+.topic-head:hover{background:#183b2c}
+.topic-index{width:30px;height:30px;border-radius:10px;background:#244837;display:grid;place-items:center;font-weight:850;color:#c7ead1;flex:none}
+.topic-head strong{display:block;font-size:13px;line-height:1.3}.topic-head small{color:var(--muted);font-size:11px}
+.topic-head .topic-status{margin-left:auto;font-size:10px;color:var(--green);font-weight:800;flex:none}
+.article{color:#d4e5d9;font-size:14px;line-height:1.8}
+.article h3{font-size:16px;color:#f3f8f3;margin:16px 0 6px}
+.article p{margin:8px 0}.article ul,.article ol{padding-left:20px}.article li{margin:5px 0}
+.formula{padding:13px;text-align:center;border:1px solid #467552;background:#102c20;border-radius:12px;margin:14px 0;font-weight:800;color:#c5f0cf}
+.reading-actions{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.figure{margin:14px 0;border:1px solid var(--line);border-radius:14px;background:#0b2119;overflow:hidden}
+.fig-btn{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.figure img{display:block;width:100%;max-height:300px;object-fit:contain;background:#0b2119}
+.figure figcaption{padding:8px 12px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid var(--line);text-align:center}
+.img-fallback{padding:28px;text-align:center;color:var(--muted);font-size:12px}
+.choice-row{display:grid;gap:8px;margin:12px 0}
+.choice{width:100%;border:1px solid #365846;background:#10271e;color:#dbece0;text-align:left;padding:10px 13px;border-radius:11px;font-size:13px}
+.choice:hover{border-color:#69bd86}.choice.selected{border-color:#69d69a;background:#183f2d;color:#fff}
+.choice.correct{border-color:#56c889;background:#16402c}.choice.wrong{border-color:#dd8074;background:#40231f}
+.feedback{margin-top:12px;padding:11px 13px;border-radius:11px;font-size:12px}
+.feedback.ok{background:#153c29;border:1px solid #397f54;color:#c9f0d4}
+.feedback.no{background:#3d241f;border:1px solid #895044;color:#ffd6ce}
+
+/* ===== Simulasi ===== */
+.chloroplast-wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:16px;align-items:center}
+.chloroplast{position:relative;min-height:300px;border-radius:20px;background:radial-gradient(ellipse at center,#173c2e,#0b2119);border:1px solid #345d48;display:grid;place-items:center;overflow:hidden}
+.chloroplast svg{width:min(100%,520px);height:auto}
+.hotspot{position:absolute;border:1px solid #b5e6b8;background:#0b291ddf;color:#e7f8eb;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800;box-shadow:0 4px 15px #0005}
+.hotspot.active{background:#a7e8b6;color:#092318}
+.hotspot[data-part="outer"]{top:12%;left:5%}.hotspot[data-part="inner"]{top:22%;right:5%}.hotspot[data-part="stroma"]{bottom:14%;left:8%}.hotspot[data-part="grana"]{top:48%;left:43%}.hotspot[data-part="thylakoid"]{bottom:13%;right:8%}
+.part-detail{padding:18px;background:#0d261d;border:1px solid var(--line);border-radius:16px;min-height:210px}
+.part-detail h3{margin:6px 0;font-size:20px}
+.step-list{display:grid;gap:7px}
+.step{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid var(--line);background:#10281f;border-radius:12px}
+.step.done{border-color:#3d8057;background:#153728}
+.step-num{width:26px;height:26px;border-radius:9px;background:#254c38;display:grid;place-items:center;font-weight:800;font-size:11px;flex:none}
+.step.done .step-num{background:#3b9d65;color:#fff}
+.step-copy{flex:1}.step-copy strong{font-size:13px;display:block}.step-copy span{font-size:11px;color:var(--muted);display:block;margin-top:2px}
+.factor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.range-wrap{background:#10271f;border:1px solid var(--line);border-radius:14px;padding:12px}
+.range-head{display:flex;justify-content:space-between;font-size:12px;font-weight:750}.range-head output{color:var(--green)}
+input[type=range]{width:100%;accent-color:#64d594;margin:12px 0 4px}
+.range-note{font-size:10px;color:var(--muted)}
+.trial-bars{display:flex;align-items:flex-end;gap:12px;height:150px;padding:12px 8px 0;border-bottom:1px solid #5d7867}
+.trial-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
+.trial-bar{width:min(52px,75%);background:linear-gradient(180deg,#b6ed9d,#32a96a);border-radius:8px 8px 2px 2px;min-height:3px;transition:height .3s}
+.trial-bar-wrap small{font-size:10px;color:var(--muted)}.trial-bar-wrap b{font-size:11px}
+
+/* ===== Asesmen ===== */
+.assessment-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+.tab{border:1px solid var(--line);background:#10271f;color:#b9cfbf;border-radius:30px;padding:8px 13px;font-size:11px;font-weight:800}
+.tab.active{background:#24563d;border-color:#5ba977;color:#fff}
+.question-card{padding:16px;border:1px solid var(--line);background:#10271f;border-radius:15px;margin:12px 0}
+.stimulus{border-left:3px solid #d2b45f;padding:10px 13px;background:#28291c;border-radius:0 10px 10px 0;color:#ebdfb7;font-size:12px;line-height:1.6;margin:10px 0}
+.question-title{font-weight:800;font-size:14px;margin:10px 0}
+.option{display:flex;gap:9px;align-items:flex-start;padding:9px 10px;margin:6px 0;border:1px solid #2d4b3b;border-radius:10px;background:#0d221a;cursor:pointer;font-size:12px}
+.option input{accent-color:#6bd597;margin-top:2px}
+.option:has(input:checked){border-color:#61c887;background:#153a29}
+.match-row{display:grid;grid-template-columns:1fr 1.3fr;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
+.match-row strong{font-size:12px}.match-row select{font-size:11px;padding:9px}
+.fill-q p{font-size:12px;margin:7px 0}
+
+/* ===== Refleksi, referensi, sertifikat ===== */
+.reflection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.reflection-field{padding:14px;border:1px solid var(--line);background:#10271f;border-radius:14px}
+.reflection-field label{display:block;font-size:12px;font-weight:800;margin-bottom:8px}
+.reflection-field .textarea{min-height:110px;font-size:12px}
+.refs{margin:0;padding:0;list-style:none;display:grid;gap:14px;counter-reset:ref}
+.refs li{counter-increment:ref;position:relative;padding:14px 16px 14px 56px;border:1px solid var(--line);background:#10281f;border-radius:14px;color:#dbece0;font-size:14px;line-height:1.7}
+.refs li:before{content:counter(ref);position:absolute;left:16px;top:14px;width:28px;height:28px;border-radius:9px;background:#254c38;display:grid;place-items:center;font-weight:800;font-size:12px;color:#c7ead1}
+.refs a{color:var(--blue);word-break:break-all}
+.certificate-preview{max-width:760px;margin:auto;background:#f5f2e8;color:#233d30;padding:26px;border:8px double #b99445;border-radius:4px;box-shadow:0 20px 60px #0006;text-align:center}
+.certificate-preview h2{font-family:Georgia,serif;font-size:32px;letter-spacing:.12em;margin:5px;color:#214f37}
+.certificate-preview .recipient{font:bold 27px Georgia,serif;border-bottom:1px solid #b99445;display:inline-block;padding:8px 25px;color:#1b4833}
+.certificate-preview p{color:#46614e;margin:10px 0}
+.certificate-preview .cert-meta{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin:14px}
+.certificate-preview .sign{margin:18px 0 0 auto;width:260px;border-top:1px solid #8d9e8f;padding-top:8px}
+.complete-banner{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #34774f;background:#153827;border-radius:13px;margin:12px 0;color:#d5f0dc}
+.complete-banner .icon{font-size:23px}
+.footer-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+
+/* ===== Jendela dialog, lightbox, toast ===== */
+#overlay{position:absolute;inset:0;z-index:50;background:rgba(2,10,7,.74);display:grid;place-items:center;backdrop-filter:blur(4px)}
+.modal{width:450px;max-width:92%;max-height:94%;overflow:auto;background:#10281f;border:1px solid #3d7959;border-radius:18px;padding:24px;box-shadow:0 30px 80px #000a}
+.modal-title{margin:6px 0 8px;font-size:21px}
+.modal.modal-light{width:auto;max-width:96%;padding:14px;background:#0b2119;display:flex;flex-direction:column;align-items:center;gap:10px}
+.modal-light img{max-width:1120px;max-height:590px;width:auto;height:auto;object-fit:contain;border-radius:10px;background:#0b2119}
+.modal-light .cap{font-size:12px;color:var(--muted);font-style:italic}
+.toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#e2f8e8;color:#103522;padding:10px 18px;border-radius:30px;font-size:12px;font-weight:800;box-shadow:0 10px 30px #0006;z-index:99;animation:pop .2s ease;max-width:90%;text-align:center}
+@keyframes pop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.read-strip{display:grid;grid-template-columns:1fr 1.4fr;gap:24px;align-items:center;margin-bottom:14px;padding:12px 18px}
+</style>
+</head>
+<body>
+<div id="stage">
+<div id="app"></div>
+<div id="overlay" class="hidden"></div>
+<div id="toast" class="toast hidden" role="status"></div>
+</div>
+<div id="rotateHint" class="hidden">Putar gawai ke posisi lanskap (horizontal) agar tampilan 16:9 terbaca jelas.</div>
+<script>
+(()=>{
+'use strict';
+const BASE_W=1280,BASE_H=720,TOTAL=9,TEACHER_PASS='guru123';
+const IMG={
+ cover:'https://i.ibb.co.com/XZ9dRTgd/img-Luminous-Leaf-and-Chloroplast-Journey.png',
+ dev:'https://i.ibb.co.com/B5jqxzct/Image-Skestsa-No-BG.png',
+ kloroplas:'https://i.ibb.co.com/8gVrB806/img-Struktur-Kloroplas-Gemini-Generated-Image.jpg',
+ terang:'https://i.ibb.co.com/h0MGwWm/img-Infografik-Reaksi-Terang-Chat-GPT.png',
+ calvin:'https://i.ibb.co.com/yn573Wx3/img-Infografik-Siklus-Calvin-Chat-GPT.png'
+};
+const STAGES=[
+ {name:'Tujuan Pembelajaran',sub:'Arah dan capaian belajar'},
+ {name:'Lab Literasi',sub:'Baca dan pahami'},
+ {name:'Lab Simulasi 1',sub:'Menjelajah isi kloroplas'},
+ {name:'Lab Simulasi 2',sub:'Mesin fotosintesis'},
+ {name:'Lab Simulasi 3',sub:'Eksperimen virtual'},
+ {name:'Tantangan Sains',sub:'Uji literasi sains'},
+ {name:'Ruang Refleksi',sub:'Maknai pembelajaran'},
+ {name:'Referensi',sub:'Sumber belajar'},
+ {name:'Sertifikat',sub:'Rekap dan sertifikat'}
+];
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=d=>new Intl.DateTimeFormat('id-ID',{day:'2-digit',month:'long',year:'numeric'}).format(new Date(d));
+const fmtTime=d=>new Intl.DateTimeFormat('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(d));
+const fmtDuration=ms=>{let s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`};
+const pad2=n=>String(n).padStart(2,'0');
+
+/* Seluruh data hanya disimpan di memori. Tidak ada localStorage/sessionStorage,
+   sehingga menutup tab atau memuat ulang halaman selalu kembali ke halaman awal. */
+try{localStorage.removeItem('biolearn_photosynthesis_v1')}catch(e){}
+const fresh=()=>({started:false,teacher:false,finished:false,profile:{name:'',kelas:''},startAt:null,endAt:null,activeMs:0,currentStage:1,completed:{},readDone:[],readFocus:0,activePart:'stroma',sim1Found:[],sim1Answers:{},sim1Passed:false,sim2:{light:0,calvin:0,answer:null,passed:false},sim3:{trials:[],light:55,co2:55,water:55,temp:28,answer:null,passed:false},assessment:{tab:'pg',pg:{},match:{},fill:{},submitted:false,bestScore:0,bestCorrect:0,bestPoints:0,passed:false,attempts:0},reflections:{q1:'',q2:'',q3:'',q4:'',sentence:''},certificateId:''});
+let state=fresh(),view='welcome',tick=null,toastT=null,resetScroll=false;
+const elapsed=()=>state.activeMs||0;
+
+function notify(msg){const el=$('#toast');if(!el)return;el.textContent=msg;el.classList.remove('hidden');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.add('hidden'),2800)}
+function stopTimer(){if(tick){clearInterval(tick);tick=null}}
+function startTimer(){stopTimer();let last=Date.now();tick=setInterval(()=>{const now=Date.now();if(state.started&&!state.teacher&&!state.finished&&!document.hidden)state.activeMs+=Math.max(0,now-last);last=now;const t=$('#timer');if(t)t.textContent=fmtDuration(state.activeMs)},1000)}
+
+/* ===== Skala bingkai 16:9 ===== */
+function fit(){
+ const vv=window.visualViewport,w=vv?vv.width:window.innerWidth,h=vv?vv.height:window.innerHeight;
+ const s=Math.min(w/BASE_W,h/BASE_H);
+ $('#stage').style.transform=`scale(${s})`;
+ $('#rotateHint').classList.toggle('hidden',!(h>w&&w<820));
+}
+window.addEventListener('resize',fit);if(window.visualViewport)window.visualViewport.addEventListener('resize',fit);
+
+/* ===== Jendela dialog ===== */
+function openModal(html,cls=''){const o=$('#overlay');o.innerHTML=`<div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div>`;o.classList.remove('hidden');bindImages()}
+function closeModal(){const o=$('#overlay');o.classList.add('hidden');o.innerHTML=''}
+$('#overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+window.addEventListener('beforeunload',e=>{if(state.started&&!state.teacher&&!state.finished){e.preventDefault();e.returnValue=''}});
+
+const readings=[
+{title:'Fotosintesis dan perannya bagi kehidupan',sub:'Dari energi cahaya menjadi energi kimia',minutes:'4–5 menit',html:`<p>Bayangkan sebuah pohon mangga yang tumbuh tinggi, menghasilkan daun, bunga, dan buah. Dari mana tumbuhan memperoleh bahan untuk membangun tubuhnya? Tumbuhan menyerap air dan mineral melalui akar, mengambil karbon dioksida dari udara, serta menangkap energi cahaya. Melalui <b>fotosintesis</b>, tumbuhan menyusun senyawa organik yang menyimpan energi kimia.</p><h3>Fotosintesis bukan sekadar “membuat makanan”</h3><p>Fotosintesis adalah rangkaian reaksi biokimia yang mengubah energi cahaya menjadi energi kimia melalui pembentukan senyawa organik dari karbon dioksida dan air. Pada tumbuhan hijau, proses ini berlangsung terutama di kloroplas. Energi yang tersimpan pada molekul organik kemudian dapat digunakan untuk pertumbuhan, perbaikan sel, pembentukan biji, buah, dan berbagai aktivitas metabolisme.</p><p>Karbon dalam glukosa berasal dari CO₂, sedangkan oksigen (O₂) yang dilepaskan pada fotosintesis oksigenik berasal dari pemecahan air. Fakta ini penting: oksigen yang dilepaskan bukan berasal dari CO₂.</p><div class="formula">6 CO₂ + 6 H₂O + energi cahaya → C₆H₁₂O₆ + 6 O₂</div><p>Persamaan tersebut adalah ringkasan bersih yang menyederhanakan banyak tahap reaksi. Produk awal siklus Calvin yang langsung terbentuk adalah G3P, bukan glukosa secara langsung. G3P dapat digunakan sebagai bahan untuk menyusun glukosa dan molekul organik lainnya.</p><h3>Mengapa fotosintesis penting?</h3><ul><li>Mengubah energi cahaya menjadi energi kimia yang memasuki jaring-jaring makanan.</li><li>Menyediakan bahan organik bagi tumbuhan dan organisme lain yang bergantung pada produsen.</li><li>Melepaskan oksigen ke lingkungan melalui fotosintesis oksigenik.</li><li>Mengikat karbon anorganik dari atmosfer atau air ke dalam senyawa organik.</li></ul><div class="callout blue">Pikirkan: jika seluruh produsen fotosintetik berhenti berfotosintesis, apa dampaknya terhadap aliran energi dan ketersediaan bahan organik dalam ekosistem?</div>`,quiz:{q:'Atom karbon yang menyusun karbohidrat hasil fotosintesis terutama berasal dari ...',opts:['Air yang diserap akar','Karbon dioksida dari lingkungan','Oksigen dari udara','Mineral tanah'],a:1,why:'Karbon dalam senyawa organik hasil fotosintesis difiksasi dari CO₂. Air menyumbang elektron dan proton pada reaksi terang, serta menjadi sumber O₂ yang dilepaskan.'}},
+{title:'Kloroplas dan pigmen fotosintetik',sub:'Mengenali tempat berlangsungnya fotosintesis',minutes:'5 menit',html:`<p>Sel mesofil daun umumnya memiliki banyak kloroplas. Kloroplas merupakan organel bermembran ganda yang mengandung sistem membran internal bernama tilakoid. Di dalam membran tilakoid terdapat klorofil dan kompleks protein yang menangkap serta mengubah energi cahaya.</p><h3>Bagian penting kloroplas</h3><ul><li><b>Membran luar dan membran dalam:</b> membatasi kloroplas dan mengatur perpindahan molekul.</li><li><b>Stroma:</b> matriks cair di dalam kloroplas; tempat berlangsungnya siklus Calvin.</li><li><b>Tilakoid:</b> kantong membran pipih tempat fotosistem, rantai transpor elektron, dan ATP sintase berada.</li><li><b>Grana:</b> tumpukan tilakoid yang memperluas organisasi membran.</li><li><b>Ruang tilakoid/lumen:</b> ruang di dalam tilakoid tempat proton terakumulasi selama aliran elektron.</li></ul><h3>Pigmen fotosintetik</h3><p>Klorofil <b>a</b> merupakan pigmen utama yang terlibat langsung pada pusat reaksi fotosistem. Klorofil b dan pigmen karotenoid berperan sebagai pigmen aksesori yang memperluas rentang cahaya yang dapat diserap dan membantu melindungi sistem fotosintetik dari kerusakan akibat energi cahaya berlebih.</p><p>Daun tampak hijau karena sebagian cahaya hijau lebih banyak dipantulkan atau diteruskan dibandingkan cahaya merah dan biru yang diserap kuat oleh klorofil. Warna yang terlihat bukan berarti cahaya hijau sama sekali tidak berinteraksi dengan daun.</p><div class="callout">Ingat lokasi: reaksi terang berlangsung pada membran tilakoid, sedangkan siklus Calvin berlangsung di stroma.</div>`,quiz:{q:'Pasangan lokasi dan proses yang tepat adalah ...',opts:['Stroma — fotolisis air','Membran tilakoid — reaksi terang','Grana — siklus Calvin','Lumen — fiksasi CO₂ oleh RuBisCO'],a:1,why:'Fotosistem dan rantai transpor elektron berada pada membran tilakoid. Siklus Calvin berlangsung di stroma.'}},
+{title:'Reaksi terang',sub:'Menangkap cahaya dan menghasilkan ATP serta NADPH',minutes:'5–6 menit',html:`<p>Reaksi terang mengubah energi cahaya menjadi energi kimia dalam bentuk ATP dan NADPH. Reaksi ini berlangsung pada membran tilakoid. Dua fotosistem bekerja secara berurutan dalam aliran elektron nonsiklik: Fotosistem II (PSII) dan Fotosistem I (PSI).</p><h3>Alur utama reaksi terang</h3><ol><li>Kompleks pemanen cahaya menyerap foton dan menyalurkan energinya ke pusat reaksi PSII.</li><li>Elektron berenergi tinggi meninggalkan PSII dan digantikan oleh elektron dari pemecahan air (fotolisis). Proses ini melepaskan O₂ dan proton.</li><li>Elektron mengalir melalui pembawa elektron. Energi aliran ini membantu membangun gradien proton di lumen tilakoid.</li><li>Proton mengalir kembali melalui ATP sintase. Energi aliran proton digunakan untuk membentuk ATP dari ADP dan fosfat.</li><li>Elektron mencapai PSI, menerima energi cahaya lagi, lalu diteruskan ke feredoksin dan akhirnya digunakan oleh NADP⁺ reduktase untuk membentuk NADPH.</li></ol><h3>Fotofosforilasi nonsiklik dan siklik</h3><p>Pada aliran nonsiklik, elektron berasal dari air dan akhirnya diterima NADP⁺. Hasilnya mencakup O₂, ATP, dan NADPH. Pada fotofosforilasi siklik, elektron dari PSI kembali ke rantai transpor elektron; proses ini menambah produksi ATP tanpa menghasilkan NADPH tambahan dan tanpa fotolisis air.</p><div class="callout gold">ATP menyediakan energi, sedangkan NADPH menyediakan daya reduksi untuk reaksi pembentukan senyawa organik pada siklus Calvin.</div>`,quiz:{q:'Mengapa fotolisis air diperlukan pada aliran elektron nonsiklik?',opts:['Untuk menghasilkan CO₂','Untuk mengganti elektron yang hilang dari Fotosistem II','Untuk mengubah G3P menjadi RuBP','Untuk memecah ATP menjadi ADP'],a:1,why:'Elektron dari air menggantikan elektron yang tereksitasi dan meninggalkan pusat reaksi Fotosistem II. Fotolisis juga melepaskan proton dan O₂.'}},
+{title:'Siklus Calvin',sub:'Fiksasi karbon, reduksi, dan regenerasi RuBP',minutes:'5–6 menit',html:`<p>Siklus Calvin berlangsung di stroma kloroplas. Siklus ini tidak menggunakan foton secara langsung, tetapi bergantung pada ATP dan NADPH yang dihasilkan reaksi terang. Karena itu, istilah “reaksi gelap” dapat menyesatkan: siklus Calvin umumnya aktif ketika produk reaksi terang tersedia dan kondisi sel mendukung.</p><h3>Tiga fase siklus Calvin</h3><ol><li><b>Fiksasi karbon.</b> Enzim RuBisCO membantu menggabungkan CO₂ dengan ribulosa-1,5-bifosfat (RuBP), senyawa berkarbon lima. Produk tidak stabil yang terbentuk segera terurai menjadi 3-fosfogliserat (3-PGA).</li><li><b>Reduksi.</b> 3-PGA menerima energi dari ATP dan elektron dari NADPH, lalu diubah menjadi gliseraldehida-3-fosfat (G3P). Sebagian G3P dapat keluar dari siklus untuk menjadi bahan pembentuk karbohidrat dan senyawa organik lain.</li><li><b>Regenerasi.</b> Sebagian besar G3P menggunakan ATP untuk membentuk kembali RuBP sehingga siklus dapat berlangsung lagi.</li></ol><h3>Perhitungan sederhana</h3><p>Untuk menghasilkan satu G3P bersih (tiga karbon) dari tiga CO₂, siklus Calvin menggunakan 9 ATP dan 6 NADPH. Dua G3P bersih dapat menjadi bahan awal pembentukan satu molekul glukosa enam karbon, dengan kebutuhan 6 CO₂, 18 ATP, dan 12 NADPH.</p><div class="formula">3 CO₂ + 9 ATP + 6 NADPH → 1 G3P bersih* </div><p class="small muted">*Persamaan ringkas ini menunjukkan kebutuhan utama pada siklus; bukan persamaan reaksi kimia lengkap.</p>`,quiz:{q:'Jika pembentukan NADPH terhenti, tahap siklus Calvin yang paling langsung terganggu adalah ...',opts:['Penyerapan foton oleh klorofil','Reduksi 3-PGA menjadi G3P','Fotolisis air','Penyerapan mineral oleh akar'],a:1,why:'NADPH menyumbangkan elektron dan daya reduksi untuk mengubah 3-PGA menjadi G3P. Kekurangan NADPH menghambat fase reduksi.'}},
+{title:'Faktor yang memengaruhi laju fotosintesis',sub:'Membaca faktor pembatas dan kondisi optimum',minutes:'5–6 menit',html:`<p>Laju fotosintesis tidak ditentukan oleh satu faktor saja. Cahaya, konsentrasi CO₂, ketersediaan air, suhu, kondisi daun, dan jumlah klorofil dapat memengaruhinya. Ketika satu faktor berada pada tingkat yang paling membatasi, peningkatan faktor lain belum tentu menaikkan laju fotosintesis.</p><h3>Faktor pembatas</h3><p>Menurut prinsip faktor pembatas, laju proses dapat dibatasi oleh sumber daya atau kondisi yang paling kurang mendukung. Pada intensitas cahaya rendah, penambahan CO₂ mungkin belum banyak berpengaruh. Ketika cahaya sudah mencukupi, konsentrasi CO₂ dapat menjadi faktor pembatas berikutnya.</p><h3>Suhu memiliki pola berbeda</h3><p>Banyak reaksi fotosintesis dikendalikan enzim. Kenaikan suhu dari kondisi rendah menuju kisaran optimum dapat mempercepat reaksi enzimatis. Namun, suhu terlalu tinggi dapat menurunkan kinerja enzim, meningkatkan fotorespirasi pada banyak tumbuhan C₃, serta memicu stres dan penutupan stomata. Karena itu, hubungan suhu dan laju fotosintesis tidak selalu meningkat secara linear.</p><h3>Air dan stomata</h3><p>Ketika tumbuhan kekurangan air, stomata dapat menutup untuk mengurangi kehilangan air. Penutupan stomata juga membatasi masuknya CO₂ ke daun sehingga laju fiksasi karbon dapat menurun. Air juga merupakan reaktan pada reaksi terang.</p><div class="callout blue">Saat membaca grafik eksperimen, perhatikan variabel yang diubah, variabel yang dikendalikan, satuan pengukuran, dan rentang data. Korelasi tidak otomatis membuktikan sebab-akibat.</div>`,quiz:{q:'Pada kondisi cahaya sudah jenuh, penambahan intensitas cahaya tidak meningkatkan laju fotosintesis. Penjelasan terbaik adalah ...',opts:['Cahaya berubah menjadi CO₂','Faktor lain, misalnya CO₂ atau kapasitas enzim, menjadi pembatas','Klorofil tidak lagi ada','Air tidak diperlukan dalam fotosintesis'],a:1,why:'Ketika cahaya bukan lagi faktor pembatas, ketersediaan CO₂, suhu, air, atau kapasitas biokimia dapat membatasi laju.'}},
+{title:'Fotosintesis, produktivitas, dan lingkungan',sub:'Menghubungkan konsep dengan persoalan sehari-hari',minutes:'4–5 menit',html:`<p>Fotosintesis menjadi dasar produktivitas primer. Sebagian karbon yang difiksasi tumbuhan digunakan untuk respirasi dan pemeliharaan, sedangkan sisanya dapat disimpan sebagai biomassa akar, batang, daun, buah, atau biji. Biomassa ini menjadi sumber energi dan materi bagi organisme lain.</p><h3>Contoh pada pertanian dan perkebunan</h3><p>Tanaman kelapa sawit, padi, jagung, dan sayuran membutuhkan cahaya, air, CO₂, serta suhu yang sesuai. Tajuk yang terlalu rapat dapat menyebabkan daun bagian bawah menerima cahaya lebih sedikit. Sebaliknya, paparan cahaya berlebihan pada kondisi panas dan kekurangan air juga dapat menimbulkan stres. Pengelolaan tanaman perlu mempertimbangkan banyak faktor, bukan hanya menambah cahaya atau pupuk.</p><h3>Fotosintesis dan siklus karbon</h3><p>Fotosintesis memindahkan karbon dari CO₂ ke bahan organik. Karbon tersebut dapat berpindah melalui rantai makanan, tersimpan sementara dalam biomassa atau tanah, dan kembali ke atmosfer melalui respirasi, dekomposisi, serta pembakaran. Fotosintesis penting bagi siklus karbon, tetapi tidak berarti semua karbon yang difiksasi akan tersimpan permanen.</p><h3>Mengkritisi sebuah klaim</h3><p>Klaim “semakin banyak pupuk, fotosintesis selalu semakin cepat” terlalu sederhana. Unsur hara memang dibutuhkan untuk membentuk klorofil, enzim, dan jaringan, tetapi respons tanaman dipengaruhi kondisi awal, jenis unsur hara, air, cahaya, suhu, dan faktor pembatas lainnya.</p><div class="callout">Ilmuwan yang baik tidak hanya menyatakan pendapat. Ia mengajukan pertanyaan, mengumpulkan bukti, membandingkan data, dan menyampaikan kesimpulan yang sebanding dengan kekuatan bukti.</div>`,quiz:{q:'Kesimpulan yang paling sesuai dengan bacaan tentang produktivitas tanaman adalah ...',opts:['Produktivitas hanya ditentukan jumlah pupuk','Produktivitas dipengaruhi interaksi banyak faktor lingkungan dan kondisi tanaman','Cahaya selalu menjadi faktor pembatas utama','Seluruh karbon hasil fotosintesis tersimpan permanen'],a:1,why:'Produktivitas dipengaruhi interaksi cahaya, CO₂, air, suhu, unsur hara, kondisi tanaman, serta pengelolaan.'}}
+];
+const parts={outer:{name:'Membran luar',desc:'Membran terluar kloroplas yang menjadi batas organel dan membantu mengatur pertukaran molekul dengan sitoplasma.'},inner:{name:'Membran dalam',desc:'Membran bagian dalam yang membatasi stroma. Bersama sistem transpor membran, membran ini membantu mengatur lingkungan internal kloroplas.'},stroma:{name:'Stroma',desc:'Matriks cair kloroplas yang mengandung enzim, DNA, dan ribosom. Siklus Calvin berlangsung di bagian ini.'},grana:{name:'Grana',desc:'Tumpukan tilakoid. Susunan membran tilakoid menyediakan area luas untuk kompleks fotosistem dan rantai transpor elektron.'},thylakoid:{name:'Tilakoid dan lumen',desc:'Tilakoid adalah kantong membran. Pada membrannya terdapat fotosistem dan ATP sintase; proton terakumulasi di ruang dalamnya yang disebut lumen.'}};
+const lightSteps=[['Cahaya diserap PSII','Foton mengangkat energi elektron pada pusat reaksi Fotosistem II.'],['Fotolisis air','Air dipecah untuk mengganti elektron PSII; O₂ dan proton dilepaskan.'],['Aliran elektron','Elektron mengalir melalui pembawa elektron menuju kompleks sitokrom.'],['Gradien proton','Energi aliran elektron mendukung akumulasi H⁺ di lumen tilakoid.'],['Sintesis ATP','Proton mengalir melalui ATP sintase dan mendorong pembentukan ATP.'],['Cahaya diserap PSI','Elektron menerima energi cahaya kembali di Fotosistem I.'],['Pembentukan NADPH','Elektron akhirnya digunakan untuk mereduksi NADP⁺ menjadi NADPH.']];
+const calvinSteps=[['Fiksasi karbon','CO₂ diikat pada RuBP dengan bantuan enzim RuBisCO; terbentuk 3-PGA.'],['Reduksi','ATP dan NADPH digunakan untuk mengubah 3-PGA menjadi G3P.'],['Regenerasi RuBP','Sebagian besar G3P menggunakan ATP untuk membentuk kembali RuBP.']];
+const pgQuestions=[
+{stim:'Sebuah tanaman diberi air yang mengandung isotop oksigen-18 (H₂¹⁸O). Setelah disinari, oksigen-18 terdeteksi pada gas O₂ yang dilepaskan.',q:'Hasil ini mendukung kesimpulan bahwa ...',o:['O₂ yang dilepaskan berasal dari air','O₂ yang dilepaskan berasal dari CO₂','Karbon glukosa berasal dari O₂','Air hanya berfungsi menjaga bentuk daun'],a:0,e:'Pada fotosintesis oksigenik, O₂ dilepaskan dari pemecahan H₂O pada reaksi terang.'},
+{stim:'Pada daun, klorofil menyerap kuat cahaya merah dan biru. Sebagian cahaya hijau dipantulkan atau diteruskan sehingga daun tampak hijau.',q:'Pernyataan paling tepat tentang warna hijau daun adalah ...',o:['Klorofil tidak berinteraksi sama sekali dengan cahaya hijau','Warna yang terlihat merupakan cahaya yang lebih banyak dipantulkan atau diteruskan','Daun membuat cahaya hijau melalui siklus Calvin','Cahaya hijau selalu paling efektif untuk fotosintesis'],a:1,e:'Warna yang terlihat berkaitan dengan panjang gelombang yang tidak diserap kuat dan dipantulkan atau diteruskan.'},
+{stim:'Membran tilakoid mengandung fotosistem, pembawa elektron, dan ATP sintase. Selama reaksi terang, konsentrasi proton di lumen meningkat.',q:'Perpindahan proton melalui ATP sintase berperan langsung dalam ...',o:['Fiksasi CO₂','Pembentukan ATP','Pembentukan RuBP dari CO₂','Pemecahan glukosa'],a:1,e:'Aliran H⁺ menuruni gradien elektrokimia melalui ATP sintase menyediakan energi untuk sintesis ATP.'},
+{stim:'Dalam aliran elektron nonsiklik, elektron yang meninggalkan Fotosistem II diganti oleh elektron hasil pemecahan air. Elektron kemudian bergerak menuju Fotosistem I.',q:'Jika fotolisis air terhambat, akibat yang paling langsung adalah ...',o:['Pasokan elektron ke PSII terganggu','CO₂ langsung berubah menjadi O₂','RuBisCO menjadi sumber elektron','RuBP tidak dapat mengikat O₂'],a:0,e:'Fotolisis air menyediakan elektron pengganti bagi PSII dan turut melepaskan proton serta O₂.'},
+{stim:'Seorang peneliti menggelapkan tanaman selama beberapa saat. Ketika cahaya kembali diberikan, pembentukan ATP dan NADPH meningkat sebelum laju fiksasi karbon mencapai keadaan stabil.',q:'Mengapa siklus Calvin memerlukan produk reaksi terang?',o:['Karena ATP dan NADPH digunakan dalam fase reduksi dan regenerasi','Karena siklus Calvin terjadi di lumen tilakoid','Karena cahaya mengubah RuBP langsung menjadi oksigen','Karena CO₂ hanya tersedia ketika lampu menyala'],a:0,e:'Siklus Calvin menggunakan ATP sebagai energi dan NADPH sebagai sumber daya reduksi.'},
+{stim:'Tiga molekul CO₂ difiksasi dalam siklus Calvin. Secara bersih, satu molekul G3P dapat keluar dari siklus, sementara molekul G3P lain digunakan untuk meregenerasi RuBP.',q:'Berapa atom karbon yang terkandung dalam satu G3P?',o:['2','3','5','6'],a:1,e:'G3P merupakan senyawa berkarbon tiga. Dua G3P bersih dapat menjadi bahan awal pembentukan satu heksosa.'},
+{stim:'Enzim RuBisCO mengatalisis pengikatan CO₂ pada RuBP. Produk enam karbon yang terbentuk tidak stabil dan segera terurai menjadi dua molekul 3-PGA.',q:'Peristiwa tersebut merupakan bagian dari fase ...',o:['Fotolisis','Regenerasi','Fiksasi karbon','Fotofosforilasi siklik'],a:2,e:'Pengikatan CO₂ oleh RuBisCO pada RuBP adalah fiksasi karbon dalam siklus Calvin.'},
+{stim:'Pada perlakuan A, cahaya ditingkatkan tiga kali lipat, tetapi konsentrasi CO₂ sangat rendah. Pada perlakuan B, cahaya sedang dan CO₂ tersedia cukup.',q:'Mengapa perlakuan A belum tentu memiliki laju fotosintesis tertinggi?',o:['Karena CO₂ dapat menjadi faktor pembatas','Karena CO₂ merupakan hasil fotosintesis','Karena intensitas cahaya tidak pernah berpengaruh','Karena tumbuhan tidak menggunakan karbon'],a:0,e:'Peningkatan cahaya tidak selalu menaikkan laju jika CO₂ atau faktor lain menjadi pembatas.'},
+{stim:'Grafik laju fotosintesis terhadap suhu menunjukkan kenaikan sampai suhu optimum, lalu penurunan pada suhu yang lebih tinggi.',q:'Penjelasan paling masuk akal untuk penurunan setelah suhu optimum adalah ...',o:['Cahaya berubah menjadi panas yang disimpan sebagai gula','Aktivitas enzim terganggu dan stres fisiologis meningkat','CO₂ tidak lagi mengandung karbon','Kloroplas berubah menjadi mitokondria'],a:1,e:'Suhu terlalu tinggi dapat mengganggu kerja enzim dan proses fisiologis, termasuk memicu penutupan stomata.'},
+{stim:'Ketika tanaman mengalami kekeringan, stomata cenderung menutup untuk mengurangi kehilangan air. Pertukaran gas dengan lingkungan menjadi lebih terbatas.',q:'Dampak yang mungkin terjadi pada fotosintesis adalah ...',o:['CO₂ yang masuk berkurang sehingga fiksasi karbon dapat menurun','O₂ berubah menjadi sumber karbon','Siklus Calvin berpindah ke akar','Klorofil tidak lagi membutuhkan cahaya'],a:0,e:'Penutupan stomata membatasi difusi CO₂ ke dalam daun dan dapat menurunkan laju fiksasi karbon.'},
+{stim:'Sebuah grafik menunjukkan laju fotosintesis meningkat ketika konsentrasi CO₂ naik, lalu mendatar pada konsentrasi tinggi sementara intensitas cahaya tetap.',q:'Bagian grafik yang mendatar paling mungkin menunjukkan bahwa ...',o:['CO₂ telah habis seluruhnya','Faktor lain mulai membatasi atau sistem mendekati kapasitas maksimum','Fotosintesis berubah menjadi respirasi','Tumbuhan tidak memiliki enzim'],a:1,e:'Ketika respons terhadap CO₂ mendatar, faktor lain atau kapasitas biokimia dapat membatasi laju.'},
+{stim:'Di kebun percobaan, tanaman di bawah naungan memiliki laju fotosintesis per satuan luas daun lebih rendah daripada tanaman yang mendapat cahaya cukup. Namun, tanaman di tempat terbuka yang sangat panas dan kering juga menunjukkan penurunan.',q:'Kesimpulan yang paling cermat adalah ...',o:['Cahaya sebanyak mungkin selalu terbaik','Fotosintesis dipengaruhi kombinasi cahaya dan faktor lingkungan lain','Naungan selalu meningkatkan fotosintesis','Suhu dan air tidak berhubungan dengan fotosintesis'],a:1,e:'Respons fotosintesis bergantung pada interaksi faktor. Cahaya berlebih pada kondisi panas-kering tidak selalu menguntungkan.'}
+];
+const matchItems=[['Fotosistem II','Tempat awal aliran elektron nonsiklik dan fotolisis air'],['ATP sintase','Enzim membran yang menggunakan gradien proton untuk membentuk ATP'],['RuBisCO','Enzim yang mengatalisis fiksasi CO₂ pada RuBP'],['NADPH','Molekul pembawa elektron/ daya reduksi untuk siklus Calvin'],['Stroma','Matriks kloroplas tempat berlangsungnya siklus Calvin'],['G3P','Senyawa tiga karbon yang menjadi produk bersih siklus Calvin']];
+const matchOptions=['Tempat awal aliran elektron nonsiklik dan fotolisis air','Enzim membran yang menggunakan gradien proton untuk membentuk ATP','Enzim yang mengatalisis fiksasi CO₂ pada RuBP','Molekul pembawa elektron/ daya reduksi untuk siklus Calvin','Matriks kloroplas tempat berlangsungnya siklus Calvin','Senyawa tiga karbon yang menjadi produk bersih siklus Calvin'];
+const fillItems=[
+{stim:'Pada membran tilakoid, molekul air dipecah dan menghasilkan elektron, proton, serta gas yang dilepaskan ke lingkungan.',q:'Pemecahan molekul air pada reaksi terang disebut ...',a:['fotolisis'],hint:'Satu istilah proses.'},
+{stim:'Enzim tertentu membantu menggabungkan CO₂ dengan RuBP pada awal siklus Calvin.',q:'Nama enzim tersebut adalah ...',a:['rubisco','ru bis co','ribulosa bifosfat karboksilase oksigenase'],hint:'Nama enzim.'},
+{stim:'ATP dan NADPH yang dihasilkan reaksi terang dimanfaatkan untuk membentuk G3P dari senyawa hasil fiksasi karbon.',q:'Senyawa tiga karbon yang direduksi menjadi G3P pada fase reduksi adalah ...',a:['3-pga','3 fosfogliserat','asam 3 fosfogliserat'],hint:'Singkatan atau nama lengkap.'},
+{stim:'Pada fotofosforilasi siklik, elektron dari Fotosistem I kembali menuju rantai transpor elektron dan mendukung pembentukan ATP.',q:'Fotosistem yang terlibat dalam aliran elektron siklik adalah Fotosistem ...',a:['i','1','satu'],hint:'Angka Romawi atau angka.'},
+{stim:'Sebagian G3P digunakan untuk membentuk kembali molekul penerima CO₂ agar siklus Calvin dapat berlangsung berulang.',q:'Molekul penerima CO₂ yang diregenerasi adalah ...',a:['rubp','ribulosa 1 5 bifosfat','ribulosa bifosfat'],hint:'Singkatan empat huruf.'},
+{stim:'Ketika satu faktor lingkungan berada pada tingkat paling membatasi, peningkatan faktor lain mungkin belum meningkatkan laju proses.',q:'Konsep tersebut dikenal sebagai faktor ...',a:['pembatas','limiting factor'],hint:'Satu kata dalam Bahasa Indonesia.'}
+];
+
+
+readings[1].img=IMG.kloroplas;readings[1].alt='Ilustrasi struktur kloroplas';readings[1].cap='Gambar dihasilkan oleh Gemini AI';
+readings[2].img=IMG.terang;readings[2].alt='Infografik reaksi terang';readings[2].cap='Gambar dihasilkan oleh ChatGPT';
+readings[3].img=IMG.calvin;readings[3].alt='Infografik siklus Calvin';readings[3].cap='Gambar dihasilkan oleh ChatGPT';
+
+/* ===== Alur tahap ===== */
+function unlockLevel(){if(state.teacher)return TOTAL;let n=1;while(n<TOTAL&&state.completed[n])n++;return n}
+function goStage(n){if(n>unlockLevel()){notify('Tahap ini masih terkunci. Selesaikan tahap sebelumnya.');return}state.currentStage=n;resetScroll=true;render()}
+function completeStage(n,msg){state.completed[n]=true;render();if(msg)notify(msg)}
+function advanceFrom(n,msg){state.completed[n]=true;state.currentStage=Math.min(TOTAL,n+1);resetScroll=true;render();if(msg)notify(msg)}
+
+function begin(){
+ const name=$('#studentName').value.trim(),kelas=$('#studentClass').value.trim();
+ if(name.length<3){notify('Masukkan nama lengkap siswa.');return}
+ if(!kelas){notify('Masukkan kelas siswa.');return}
+ state=fresh();state.profile={name,kelas};state.started=true;state.startAt=Date.now();
+ state.certificateId='BIO-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+ view='app';resetScroll=true;startTimer();render();notify('Perjalanan belajar dimulai. Selamat menjelajah!');
+}
+function enterTeacher(){
+ stopTimer();state=fresh();state.started=true;state.teacher=true;state.profile={name:'Guru Pengampu',kelas:'Lorong Guru'};state.startAt=Date.now();state.certificateId='PRATINJAU-GURU';
+ view='app';resetScroll=true;render();notify('Selamat datang di Lorong Guru. Semua tahap terbuka.');
+}
+function openTeacher(){
+ openModal(`<div class="eyebrow">AKSES GURU</div><h3 class="modal-title">Lorong Guru</h3><p class="muted small" style="margin:0 0 6px">Jalan pintas khusus guru: semua tahap terbuka agar konten mudah dipelajari dan dikerjakan. Masukkan kata sandi untuk melanjutkan.</p><div class="input-wrap"><label for="teacherPass">Kata sandi</label><input id="teacherPass" type="password" class="field" autocomplete="off" placeholder="Masukkan kata sandi"></div><div id="teacherErr" class="feedback no hidden">Kata sandi salah. Coba lagi.</div><div class="btn-row"><button class="btn btn-primary" id="teacherGo">Masuk</button><button class="btn btn-ghost" data-close>Batal</button></div>`);
+ const inp=$('#teacherPass');inp.focus();
+ const go=()=>{if(inp.value===TEACHER_PASS){closeModal();enterTeacher()}else{$('#teacherErr').classList.remove('hidden');inp.select()}};
+ $('#teacherGo').addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+ $('[data-close]').addEventListener('click',closeModal);
+}
+function askExit(){
+ const t=state.teacher,fin=state.finished;
+ openModal(`<div class="eyebrow">KELUAR</div><h3 class="modal-title">${t?'Keluar dari Lorong Guru?':'Keluar dari pembelajaran?'}</h3><p class="muted small" style="margin:0">${t?'Kamu akan kembali ke halaman awal.':fin?'Pastikan sertifikat sudah kamu unduh. Setelah keluar, data tidak dapat dipulihkan dan belajar berikutnya dimulai dari awal.':'Progres belajarmu akan dihapus. Jika ingin belajar lagi nanti, kamu harus mengulang dari awal.'}</p><div class="btn-row"><button class="btn btn-ghost" data-close>${t?'Tetap di sini':'Lanjut belajar'}</button><button class="btn btn-danger" id="confirmExit">Ya, keluar</button></div>`);
+ $('[data-close]').addEventListener('click',closeModal);
+ $('#confirmExit').addEventListener('click',doExit);
+}
+function doExit(){closeModal();stopTimer();state=fresh();view='welcome';resetScroll=true;render();notify('Kamu telah keluar. Belajar berikutnya dimulai dari awal.')}
+
+/* ===== Gambar: cadangan bila gagal dimuat, dan perbesar ===== */
+function bindImages(){
+ $$('img[data-img]').forEach(img=>{
+  if(img.dataset.bound)return;img.dataset.bound='1';
+  const fail=()=>{
+   const k=img.dataset.img;
+   if(k==='cover'){img.remove();const w=$('.welcome');if(w&&!$('.hero-fallback'))w.insertAdjacentHTML('afterbegin','<div class="hero-fallback">🌿</div>')}
+   else if(k==='dev'){const p=img.parentElement;if(p)p.innerHTML='<div class="dev-initials">RH</div>'}
+   else{const f=img.closest('.fig-btn')||img.closest('.modal');if(f&&f.classList.contains('fig-btn'))f.outerHTML='<div class="img-fallback">Gambar tidak dapat dimuat. Periksa koneksi internet.</div>';else img.remove()}
+  };
+  if(img.complete&&img.naturalWidth===0&&img.getAttribute('src'))fail();
+  else img.addEventListener('error',fail,{once:true});
+ });
+}
+function zoomImage(i){const r=readings[i];openModal(`<img data-img="zoom" src="${r.img}" alt="${esc(r.alt)}" referrerpolicy="no-referrer"><div class="cap">${r.cap}</div><button class="btn btn-ghost btn-sm" data-close>Tutup</button>`,'modal-light');$('[data-close]').addEventListener('click',closeModal)}
+
+/* ===== Halaman awal dan informasi ===== */
+function renderWelcome(){
+ $('#app').innerHTML=`<div class="welcome"><img class="cover-img" data-img="cover" src="${IMG.cover}" alt="Ilustrasi daun bercahaya dan perjalanan kloroplas" referrerpolicy="no-referrer"><div class="cover-shade"></div>
+ <div class="welcome-copy">
+  <div class="brandline"><span class="brand-pill">BIOLERN</span><span>Biology Literacy Experience</span></div>
+  <h1>PERJALANAN<br>FOTOSINTESIS</h1>
+  <p>Jelajahi bagaimana tumbuhan mengubah energi cahaya menjadi energi kimia. Baca, bereksperimen, analisis bukti, lalu ceritakan apa yang kamu pahami.</p>
+  <div class="welcome-form"><div class="eyebrow">MULAI MISI PENELITIAN</div><h3>Siapkan identitas peneliti</h3>
+   <p class="small muted" style="margin:0 0 4px">Progres belajar hanya berlaku selama halaman ini terbuka. Jika tab ditutup, kamu mengulang dari awal.</p>
+   <div class="form-row"><div class="input-wrap"><label for="studentName">Nama lengkap</label><input id="studentName" class="field" placeholder="Contoh: Aditya Pratama" maxlength="70" autocomplete="off"></div><div class="input-wrap"><label for="studentClass">Kelas</label><input id="studentClass" class="field" placeholder="Contoh: XII IPA 1" maxlength="30" autocomplete="off"></div></div>
+   <button class="btn btn-primary" id="startBtn" style="width:100%;margin-top:8px">MULAI PERJALANAN →</button></div>
+  <div class="welcome-actions"><button class="btn btn-ghost" id="teacherBtn">🔑 Lorong Guru</button><button class="btn btn-ghost" id="infoBtn">ⓘ Informasi</button></div>
+  <div class="welcome-note">9 tahap pembelajaran · Sertifikat PDF A4 · Gambar memerlukan koneksi internet</div>
+ </div></div>`;
+ $('#startBtn').addEventListener('click',begin);
+ $$('#studentName,#studentClass').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')begin()}));
+ $('#teacherBtn').addEventListener('click',openTeacher);
+ $('#infoBtn').addEventListener('click',()=>{view='info';render()});
+}
+function renderInfo(){
+ $('#app').innerHTML=`<div class="info"><div class="info-photo"><div class="photo-frame"><img data-img="dev" src="${IMG.dev}" alt="Foto Rahmat Hidayat, pengembang aplikasi" referrerpolicy="no-referrer"></div></div>
+ <div class="info-copy"><div><button class="btn btn-ghost btn-sm" id="backBtn">← Kembali ke halaman awal</button></div>
+  <div><div class="eyebrow">INFORMASI</div><h1>Tentang Aplikasi</h1><p class="muted" style="margin:6px 0 0">BIOLERN · Biology Literacy Experience — Perjalanan Fotosintesis</p></div>
+  <div class="card card-pad"><div class="eyebrow">IDENTITAS PENGEMBANG</div><dl class="id-list"><div><dt>Nama Pengembang</dt><dd>Rahmat Hidayat, S.Pd.I, M.Si.</dd></div><div><dt>Profesi</dt><dd>Guru Biologi</dd></div><div><dt>Institusi</dt><dd>SMAN 4 Tanjung Jabung Barat</dd></div></dl></div>
+  <div class="card card-pad declare"><h3>DEKLARASI PENGEMBANGAN MEDIA</h3><p>Arsitektur Media Pembelajaran ini dikembangkan dengan Menggunakan Kecerdasan Artifisial ChatGPT</p></div>
+ </div></div>`;
+ $('#backBtn').addEventListener('click',()=>{view='welcome';render()});
+}
+
+/* ===== Kerangka halaman belajar ===== */
+function shell(content){
+ const oldMain=$('.main'),oldSide=$('.sidebar'),mt=oldMain?oldMain.scrollTop:0,st=oldSide?oldSide.scrollTop:0;
+ const unlock=unlockLevel(),done=Object.keys(state.completed).filter(k=>state.completed[k]).length,t=state.teacher;
+ $('#app').innerHTML=`<div class="app"><header class="topbar"><div class="brand"><div class="brand-mark">✦</div><div>BIOLERN<small>Biology Literacy Experience</small></div></div><div class="top-title">PERJALANAN FOTOSINTESIS</div>
+ <div class="top-right">${t?'<span class="tag gold">🔑 Lorong Guru</span>':`<div class="timer">◷ <span id="timer">${fmtDuration(elapsed())}</span></div><div class="student-chip">${esc(state.profile.name)} · ${esc(state.profile.kelas)}</div>`}<button class="btn btn-ghost btn-sm" id="exitBtn">Keluar</button></div></header>
+ <div class="layout"><aside class="sidebar"><div class="side-label">PERJALANAN BELAJAR</div><nav class="stage-nav">${STAGES.map((s,i)=>{const n=i+1,isDone=!!state.completed[n],active=state.currentStage===n,locked=n>unlock;return `<button class="nav-item ${active?'active':''} ${isDone?'done':''}" data-go="${n}" ${locked?'disabled':''}><span class="nav-num">${isDone?'✓':pad2(n)}</span><span class="nav-copy"><strong>${s.name}</strong><span>${s.sub}</span></span><span class="nav-state">${isDone?'●':locked?'🔒':active?'●':''}</span></button>`}).join('')}</nav>
+ <div class="progress-box"><div class="progress-head"><strong>PROGRES BELAJAR</strong><span>${done}/${TOTAL}</span></div><div class="progress-track"><div class="progress-fill" style="width:${done/TOTAL*100}%"></div></div><div class="small muted" style="margin-top:7px">${Math.round(done/TOTAL*100)}% perjalanan selesai</div></div></aside>
+ <main class="main">${content}</main></div></div>`;
+ const m=$('.main');if(!resetScroll)m.scrollTop=mt;$('.sidebar').scrollTop=st;resetScroll=false;
+ $$('[data-go]').forEach(b=>b.addEventListener('click',()=>goStage(+b.dataset.go)));
+ $('#exitBtn').addEventListener('click',askExit);
+}
+function head(kicker,title,desc,tag){return `<div class="page-head"><div><div class="eyebrow">${kicker}</div><h1>${title}</h1><p>${desc}</p></div><span class="tag">✦ ${tag}</span></div>`}
+function footer(n,label){const next=n<TOTAL&&(state.teacher||state.completed[n]);return `<div class="footer-nav">${n>1?`<button class="btn btn-ghost" data-go="${n-1}">← Kembali</button>`:'<span></span>'}${next?`<button class="btn btn-primary" data-go="${n+1}">${label||'Lanjut ke tahap berikutnya'} →</button>`:''}</div>`}
+function doneBanner(icon,title,text){return `<div class="complete-banner"><span class="icon">${icon}</span><div><b>${title}</b><div class="small">${text}</div></div></div>`}
+
+/* ===== Tahap 1: Tujuan Pembelajaran ===== */
+function renderTujuan(){
+ const done=!!state.completed[1];
+ const exp=[['Memahami','proses fotosintesis pada tumbuhan.'],['Mengaplikasi','pemahaman proses fotosintesis dalam laboratorium simulasi.'],['Merefleksi','hasil pengalaman belajar untuk penemuan makna kehidupan dan perluasan pemahaman berikutnya.']];
+ shell(head('TAHAP 01 · TUJUAN PEMBELAJARAN','Tujuan Pembelajaran','Baca arah belajarmu sebelum memulai perjalanan.','ARAH BELAJAR')+
+ `<div class="card card-pad" style="margin-bottom:14px"><h2 class="section-title">Dimensi Profil Lulusan</h2><div class="pill-row">${['Kemandirian','Penalaran Kritis','Kreativitas'].map(x=>`<span class="dim">${x}</span>`).join('')}</div></div>
+ <div class="card card-pad" style="margin-bottom:14px"><h2 class="section-title" style="margin-bottom:12px">Tujuan Pembelajaran</h2><p class="goal-text">Melalui kegiatan literasi, eksplorasi, simulasi proses, eksperimen virtual, dan refleksi dalam aplikasi Perjalanan Fotosintesis, murid mampu menganalisis proses fotosintesis dengan mengaitkan struktur dan fungsi kloroplas, mekanisme reaksi terang dan siklus Calvin, serta faktor-faktor yang memengaruhi laju fotosintesis berdasarkan hasil simulasi dan interpretasi data secara kritis.</p></div>
+ <div class="card card-pad"><h2 class="section-title" style="margin-bottom:12px">Pengalaman Belajar Mendalam</h2><div class="grid three">${exp.map(x=>`<div class="exp-card"><strong>${x[0]}</strong>${x[1]}</div>`).join('')}</div></div>
+ <div class="btn-row">${done?'':'<button class="btn btn-primary" id="tpDone">Saya sudah membaca, mulai Lab Literasi →</button>'}</div>`+footer(1,'Masuk Lab Literasi'));
+ $('#tpDone')?.addEventListener('click',()=>advanceFrom(1,'Tahap selesai. Lab Literasi terbuka!'));
+}
+
+/* ===== Tahap 2: Lab Literasi ===== */
+function figureHTML(i){const r=readings[i];return r.img?`<figure class="figure"><button class="fig-btn" data-zoom="${i}" title="Klik untuk memperbesar" aria-label="Perbesar gambar: ${esc(r.alt)}"><img data-img="fig" src="${r.img}" alt="${esc(r.alt)}" referrerpolicy="no-referrer"></button><figcaption>${r.cap}</figcaption></figure>`:''}
+function readCanOpen(j){return state.teacher||j===0||state.readDone.includes(j-1)||state.readDone.includes(j)}
+function renderReading(){
+ const i=Math.min(state.readFocus,5),r=readings[i],isDone=state.readDone.includes(i),n=state.readDone.length;
+ const art=r.img?r.html.replace('</p>','</p>'+figureHTML(i)):r.html;
+ let content=head('TAHAP 02 · LAB LITERASI','Baca untuk memahami.','Setiap bacaan membuka satu bagian pengetahuan. Selesaikan bacaan dan cek pemahaman sebelum menuju topik selanjutnya.','BACA · PIKIRKAN · PERIKSA')+
+ `<div class="card card-pad read-strip"><div><div class="eyebrow">KEMAJUAN MEMBACA</div><div style="display:flex;align-items:baseline;gap:8px"><strong style="font-size:22px">${n}/6</strong><span class="muted small">subbab selesai</span></div><div class="progress-track" style="margin-top:6px"><div class="progress-fill" style="width:${n/6*100}%"></div></div></div><div><div class="eyebrow">PENGINGAT LITERASI</div><p class="small muted" style="margin:3px 0 0"><b style="color:var(--text)">Jangan terburu-buru.</b> Temukan gagasan utama, istilah penting, hubungan sebab-akibat, dan bukti yang disampaikan dalam bacaan.</p></div></div>
+ <div class="grid" style="grid-template-columns:minmax(240px,.72fr) minmax(0,1.6fr);align-items:start">
+ <div class="topic-list">${readings.map((x,j)=>{const ok=readCanOpen(j),d=state.readDone.includes(j);return `<div class="topic" style="opacity:${ok?1:.48}"><button class="topic-head" data-read="${j}" ${ok?'':'aria-disabled="true"'}><span class="topic-index">${d?'✓':pad2(j+1)}</span><div><strong>${x.title}</strong><small>${x.minutes} · ${x.sub}</small></div><span class="topic-status">${d?'SELESAI':j===i?'DIBUKA':ok?'':'TERKUNCI'}</span></button></div>`}).join('')}</div>
+ <div class="card card-pad"><div class="eyebrow">SUBBAB ${pad2(i+1)} · ${r.minutes.toUpperCase()}</div><h2 class="section-title" style="font-size:22px;margin-top:6px">${r.title}</h2><p class="section-sub">${r.sub}</p><div class="article">${art}</div>
+ <div class="reading-actions">${isDone?doneBanner('✓','Bacaan ini telah diselesaikan.','Kamu dapat membacanya kembali kapan saja.'):`<div class="callout">Pastikan kamu telah membaca seluruh penjelasan dan memperhatikan istilah ilmiah sebelum melakukan cek pemahaman.</div><button class="btn btn-primary" id="readDoneBtn" style="margin-top:12px">SAYA SELESAI MEMBACA ✓</button>`}<div id="readQuiz"></div></div></div></div>`;
+ if(n===6)content+=`<div class="complete-banner" style="margin-top:16px"><span class="icon">🌱</span><div><b>Lab Literasi selesai!</b><div class="small">Enam bacaan dan cek pemahaman telah diselesaikan.</div></div></div>`;
+ content+=footer(2,'Masuk Lab Simulasi 1');
+ shell(content);
+ $$('[data-read]').forEach(b=>b.addEventListener('click',()=>{const j=+b.dataset.read;if(readCanOpen(j)){state.readFocus=j;resetScroll=true;render()}else notify('Selesaikan subbab sebelumnya terlebih dahulu.')}));
+ $$('[data-zoom]').forEach(b=>b.addEventListener('click',()=>zoomImage(+b.dataset.zoom)));
+ $('#readDoneBtn')?.addEventListener('click',()=>{$('#readQuiz').innerHTML=renderReadQuiz(i);$('#readDoneBtn').remove();bindReadQuiz(i)});
+}
+function renderReadQuiz(i){const q=readings[i].quiz;return `<div style="margin-top:14px"><div class="eyebrow">CEK PEMAHAMAN SINGKAT</div><div class="question-title">${q.q}</div><div class="choice-row">${q.opts.map((o,j)=>`<button class="choice" data-read-opt="${j}">${String.fromCharCode(65+j)}. ${o}</button>`).join('')}</div><div id="readFeedback"></div></div>`}
+function bindReadQuiz(i){
+ $$('[data-read-opt]').forEach(b=>b.addEventListener('click',()=>{
+  const a=+b.dataset.readOpt,q=readings[i].quiz;
+  $$('[data-read-opt]').forEach(x=>x.classList.remove('selected','correct','wrong'));
+  b.classList.add(a===q.a?'correct':'wrong');
+  $('#readFeedback').innerHTML=a===q.a?`<div class="feedback ok">Benar! ${q.why}<br><button id="confirmRead" class="btn btn-primary" style="margin-top:9px">${i<5?'LANJUT KE BACAAN BERIKUTNYA':'SELESAIKAN LAB LITERASI'} →</button></div>`:`<div class="feedback no">Belum tepat. Coba baca kembali bagian yang menjelaskan konsep tersebut, lalu pilih lagi.</div>`;
+  $('#confirmRead')?.addEventListener('click',()=>{
+   if(!state.readDone.includes(i))state.readDone.push(i);
+   if(i<5)state.readFocus=i+1;
+   resetScroll=true;
+   if(state.readDone.length===6){state.completed[2]=true;render();notify('Lab Literasi selesai. Lab Simulasi 1 terbuka!')}else render();
+  });
+ }));
+}
+
+/* ===== Tahap 3: Lab Simulasi 1 ===== */
+function chloroplastSVG(){return `<svg viewBox="0 0 560 330" role="img" aria-label="Ilustrasi struktur kloroplas"><defs><linearGradient id="chloro" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#a1d982"/><stop offset="1" stop-color="#3c9f65"/></linearGradient></defs><ellipse cx="280" cy="165" rx="235" ry="122" fill="#173d2d" stroke="#b8e5a3" stroke-width="12"/><ellipse cx="280" cy="165" rx="220" ry="108" fill="url(#chloro)" stroke="#e2ed9d" stroke-width="4"/><path d="M100 155 Q170 80 260 130 T455 140 M115 205 Q205 250 280 197 T440 220" fill="none" stroke="#d1e89c" stroke-width="3" opacity=".7"/><g fill="#3c8152" stroke="#d7e89e" stroke-width="3"><rect x="190" y="112" width="72" height="18" rx="8"/><rect x="195" y="132" width="72" height="18" rx="8"/><rect x="200" y="152" width="72" height="18" rx="8"/><rect x="320" y="172" width="75" height="18" rx="8"/><rect x="315" y="192" width="75" height="18" rx="8"/><rect x="310" y="212" width="75" height="18" rx="8"/></g><g fill="none" stroke="#e7d28e" stroke-width="2"><path d="M110 88 Q150 50 185 82"/><path d="M365 84 Q410 52 448 96"/></g><g fill="#d8efa8" font-size="11" font-weight="700"><text x="270" y="76">STROMA</text><text x="210" y="185">GRANUM</text></g><circle cx="145" cy="170" r="7" fill="#f5db88"/><circle cx="420" cy="160" r="7" fill="#f5db88"/></svg>`}
+function renderSim1(){
+ const found=state.sim1Found,ap=state.activePart;
+ const qs=[{q:'Di bagian manakah siklus Calvin berlangsung?',o:['Lumen','Stroma','Membran luar'],a:1},{q:'Komponen yang menjadi lokasi fotosistem dan rantai transpor elektron adalah ...',o:['Membran tilakoid','Stroma','Membran luar'],a:0},{q:'Ruang tempat proton terakumulasi selama reaksi terang disebut ...',o:['Stroma','Sitoplasma','Lumen tilakoid'],a:2}];
+ let content=head('TAHAP 03 · LAB SIMULASI 1','Menjelajah isi kloroplas','Jelajahi organel tempat fotosintesis berlangsung. Pilih label pada ilustrasi untuk mempelajari struktur dan fungsinya.','JELAJAHI STRUKTUR')+
+ `<div class="grid two" style="margin-bottom:14px"><div class="card card-pad"><div class="eyebrow">KEMAJUAN JELAJAH</div><strong style="font-size:26px">${found.length}/5</strong><span class="muted small"> Struktur telah dijelajahi</span><div class="progress-track" style="margin-top:10px"><div class="progress-fill" style="width:${found.length/5*100}%"></div></div></div><div class="card card-pad"><div class="eyebrow">TUGAS PENGAMATAN</div><b>Temukan semua bagian kloroplas.</b><p class="small muted" style="margin:4px 0 0">Klik kelima label pada gambar. Catat lokasi reaksi terang dan siklus Calvin.</p></div></div>
+ <div class="card card-pad"><div class="chloroplast-wrap"><div class="chloroplast">${chloroplastSVG()}${Object.entries(parts).map(([k,v])=>`<button class="hotspot ${ap===k?'active':''}" data-part="${k}">${v.name}</button>`).join('')}</div>
+ <div class="part-detail"><div class="eyebrow">PENJELAJAH STRUKTUR</div><h3>${parts[ap].name}</h3><p class="muted" style="font-size:13px">${parts[ap].desc}</p><div class="callout" style="margin-top:14px">${ap==='stroma'?'Lokasi siklus Calvin.':ap==='thylakoid'?'Lokasi reaksi terang pada membran tilakoid.':'Amati hubungan struktur ini dengan fungsi kloroplas secara keseluruhan.'}</div><div class="small muted" style="margin-top:10px">${found.includes(ap)?'✓ Sudah dieksplorasi':'○ Belum dieksplorasi'}</div></div></div></div>`;
+ if(found.length===5)content+=`<div class="card card-pad" style="margin-top:14px"><div class="eyebrow">TANTANGAN STRUKTUR</div><h3 class="section-title">Uji pemahaman struktur</h3><p class="section-sub">Pilih jawaban yang tepat. Minimal 2 dari 3 benar untuk menuntaskan misi.</p>${qs.map((q,i)=>`<div class="question-card"><b>${i+1}. ${q.q}</b><div class="choice-row">${q.o.map((o,j)=>`<button class="choice ${state.sim1Answers[i]===j?'selected':''}" data-sim1q="${i}" data-val="${j}">${String.fromCharCode(65+j)}. ${o}</button>`).join('')}</div></div>`).join('')}<button class="btn btn-primary" id="sim1Submit">PERIKSA JAWABAN</button><div id="sim1Result"></div></div>`;
+ if(state.sim1Passed)content+=doneBanner('✓','Lab Simulasi 1 selesai!','Kamu sudah memahami lokasi dan fungsi bagian-bagian kloroplas.');
+ content+=footer(3,'Masuk Lab Simulasi 2');
+ shell(content);
+ $$('[data-part]').forEach(b=>b.addEventListener('click',()=>{state.activePart=b.dataset.part;if(!state.sim1Found.includes(b.dataset.part))state.sim1Found.push(b.dataset.part);renderSim1()}));
+ $$('[data-sim1q]').forEach(b=>b.addEventListener('click',()=>{state.sim1Answers[b.dataset.sim1q]=+b.dataset.val;renderSim1()}));
+ $('#sim1Submit')?.addEventListener('click',()=>{const n=qs.filter((q,i)=>state.sim1Answers[i]===q.a).length;if(n>=2){state.sim1Passed=true;completeStage(3,'Lab Simulasi 1 selesai!')}else $('#sim1Result').innerHTML=`<div class="feedback no">${n}/3 benar. Pelajari kembali lokasi dan fungsi struktur, lalu coba lagi.</div>`});
+}
+
+/* ===== Tahap 4: Lab Simulasi 2 ===== */
+function renderSim2(){
+ const s=state.sim2,done=s.light===7&&s.calvin===3;
+ let content=head('TAHAP 04 · LAB SIMULASI 2','Mesin fotosintesis','Jalankan rangkaian reaksi terang dan siklus Calvin. Perhatikan bagaimana energi dan elektron berpindah dalam kloroplas.','IKUTI PROSESNYA')+
+ `<div class="grid two"><div class="card card-pad"><div class="eyebrow">BAGIAN A · REAKSI TERANG</div><h2 class="section-title">Reaksi terang</h2><p class="section-sub">Berlangsung pada membran tilakoid. Jalankan proses secara berurutan.</p><div class="step-list">${lightSteps.map((x,i)=>`<div class="step ${i<s.light?'done':''}"><span class="step-num">${i<s.light?'✓':i+1}</span><div class="step-copy"><strong>${x[0]}</strong><span>${i<s.light?x[1]:'Klik tombol jalankan untuk membuka penjelasan tahap ini.'}</span></div></div>`).join('')}</div><div class="btn-row"><button class="btn btn-primary" id="runLight" ${s.light===7?'disabled':''}>${s.light===7?'SELESAI ✓':'JALANKAN TAHAP '+(s.light+1)}</button><span class="tag">${s.light}/7 tahap</span></div></div>
+ <div class="card card-pad"><div class="eyebrow">BAGIAN B · SIKLUS CALVIN</div><h2 class="section-title">Siklus Calvin</h2><p class="section-sub">Berlangsung di stroma. Siklus memakai ATP dan NADPH hasil reaksi terang.</p><div class="step-list">${calvinSteps.map((x,i)=>`<div class="step ${i<s.calvin?'done':''}"><span class="step-num">${i<s.calvin?'✓':i+1}</span><div class="step-copy"><strong>${x[0]}</strong><span>${i<s.calvin?x[1]:'Jalankan tahap untuk melihat proses dan molekul yang terlibat.'}</span></div></div>`).join('')}</div><div class="btn-row"><button class="btn btn-primary" id="runCalvin" ${s.light<7||s.calvin===3?'disabled':''}>${s.calvin===3?'SELESAI ✓':'JALANKAN TAHAP '+(s.calvin+1)}</button><span class="tag">${s.calvin}/3 tahap</span></div></div></div>
+ <div class="grid three" style="margin-top:14px"><div class="stat"><strong style="color:var(--gold)">ATP</strong><span>Energi untuk proses seluler dan siklus Calvin</span></div><div class="stat"><strong style="color:var(--blue)">NADPH</strong><span>Daya reduksi / pembawa elektron</span></div><div class="stat"><strong style="color:var(--green)">O₂</strong><span>Dilepaskan dari fotolisis air</span></div></div>`;
+ if(done)content+=`<div class="card card-pad" style="margin-top:14px"><div class="eyebrow">TANTANGAN PROSES</div><h3 class="section-title">Apa hubungan kedua rangkaian reaksi?</h3><p class="section-sub">Pilih jawaban paling tepat untuk menyelesaikan simulasi.</p><div class="choice-row">${['Siklus Calvin menghasilkan cahaya untuk reaksi terang.','Reaksi terang menyediakan ATP dan NADPH yang digunakan siklus Calvin.','Siklus Calvin berlangsung di lumen dan menghasilkan air untuk PSII.','Keduanya merupakan proses yang tidak saling berhubungan.'].map((o,i)=>`<button class="choice ${s.answer===i?'selected':''}" data-sim2ans="${i}">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div><button class="btn btn-primary" id="sim2Check">PERIKSA JAWABAN</button><div id="sim2Feedback"></div></div>`;
+ if(s.passed)content+=doneBanner('✓','Lab Simulasi 2 selesai!','Kamu sudah memahami hubungan reaksi terang dan siklus Calvin.');
+ content+=footer(4,'Masuk Lab Simulasi 3');
+ shell(content);
+ $('#runLight')?.addEventListener('click',()=>{state.sim2.light++;renderSim2()});
+ $('#runCalvin')?.addEventListener('click',()=>{state.sim2.calvin++;renderSim2()});
+ $$('[data-sim2ans]').forEach(b=>b.addEventListener('click',()=>{state.sim2.answer=+b.dataset.sim2ans;renderSim2()}));
+ $('#sim2Check')?.addEventListener('click',()=>{if(state.sim2.answer===1){state.sim2.passed=true;completeStage(4,'Lab Simulasi 2 selesai!')}else $('#sim2Feedback').innerHTML='<div class="feedback no">Belum tepat. Ingat fungsi ATP dan NADPH yang dihasilkan reaksi terang.</div>'});
+}
+
+/* ===== Tahap 5: Lab Simulasi 3 ===== */
+function calcRate(l,c,w,t){const min=Math.min(l,c,w)/100;const tempFactor=Math.max(.08,1-Math.pow((t-30)/25,2));return Math.round(Math.min(100,100*min*tempFactor)*10)/10}
+const rateText=n=>n<20?'Laju sangat rendah pada kombinasi kondisi ini.':n<55?'Laju sedang; periksa faktor yang paling membatasi.':'Kondisi relatif mendukung dalam model ini.';
+function renderSim3(){
+ const s=state.sim3,rate=calcRate(+s.light,+s.co2,+s.water,+s.temp),trials=s.trials;
+ let content=head('TAHAP 05 · LAB SIMULASI 3','Eksperimen fotosintesis','Ubah variabel lingkungan, catat hasil percobaan, bandingkan data, lalu buat kesimpulan berdasarkan bukti.','EKSPERIMEN VIRTUAL')+
+ `<div class="callout blue" style="margin-bottom:14px"><b>Petunjuk eksperimen.</b> Model ini merupakan simulasi konseptual untuk mempelajari faktor pembatas. Angka indeks bukan hasil pengukuran biologis nyata. Suhu memiliki kisaran optimum ilustratif sekitar 30°C.</div>
+ <div class="grid two"><div class="card card-pad"><div class="eyebrow">PENGATURAN EKSPERIMEN</div><h3 class="section-title">Atur kondisi lingkungan</h3><p class="section-sub">Geser variabel, kemudian klik “Catat percobaan”.</p>
+ <div class="factor-grid"><div class="range-wrap"><div class="range-head"><label for="lightRange">Intensitas cahaya</label><output id="lightOut">${s.light}%</output></div><input id="lightRange" type="range" min="0" max="100" value="${s.light}"><div class="range-note">0 = gelap · 100 = sangat tinggi</div></div><div class="range-wrap"><div class="range-head"><label for="co2Range">Konsentrasi CO₂</label><output id="co2Out">${s.co2}%</output></div><input id="co2Range" type="range" min="0" max="100" value="${s.co2}"><div class="range-note">Indeks ketersediaan CO₂</div></div><div class="range-wrap"><div class="range-head"><label for="waterRange">Ketersediaan air</label><output id="waterOut">${s.water}%</output></div><input id="waterRange" type="range" min="0" max="100" value="${s.water}"><div class="range-note">Indeks ketersediaan air</div></div><div class="range-wrap"><div class="range-head"><label for="tempRange">Suhu lingkungan</label><output id="tempOut">${s.temp}°C</output></div><input id="tempRange" type="range" min="10" max="50" value="${s.temp}"><div class="range-note">Kisaran model 10–50°C</div></div></div>
+ <div class="stat" id="rateStat" style="margin-top:12px"><div class="eyebrow">ESTIMASI LAJU FOTOSINTESIS</div><strong style="font-size:38px;color:var(--green)">${rate}<span style="font-size:15px"> / 100</span></strong><span>Indeks laju relatif dalam model simulasi</span><div class="progress-track" style="margin-top:10px"><div class="progress-fill" style="width:${rate}%"></div></div><p class="small muted" style="margin:8px 0 0">${rateText(rate)}</p></div>
+ <button class="btn btn-primary" id="recordTrial" style="margin-top:12px" ${trials.length>=6?'disabled':''}>＋ CATAT PERCOBAAN (${trials.length}/6)</button></div>
+ <div class="card card-pad"><div class="eyebrow">CATATAN EKSPERIMEN</div><h3 class="section-title">Data pengamatan</h3><p class="section-sub">Bandingkan hasil indeks dari setiap perlakuan.</p><div class="trial-bars">${trials.map((t,i)=>`<div class="trial-bar-wrap"><b>${t.rate}</b><div class="trial-bar" style="height:${Math.max(3,t.rate)}%"></div><small>P${i+1}</small></div>`).join('')||'<div class="muted small" style="align-self:center;margin:auto">Belum ada percobaan dicatat.</div>'}</div>
+ <div style="overflow:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:#95b4a1;text-align:left"><th style="padding:7px">Uji</th><th>Cahaya</th><th>CO₂</th><th>Air</th><th>Suhu</th><th>Indeks</th></tr></thead><tbody>${trials.map((t,i)=>`<tr style="border-top:1px solid var(--line)"><td style="padding:7px">P${i+1}</td><td>${t.light}</td><td>${t.co2}</td><td>${t.water}</td><td>${t.temp}°</td><td><b>${t.rate}</b></td></tr>`).join('')||'<tr><td colspan="6" class="muted" style="padding:10px">Data akan muncul setelah percobaan dicatat.</td></tr>'}</tbody></table></div></div></div>`;
+ if(trials.length>=3)content+=`<div class="card card-pad" style="margin-top:14px"><div class="eyebrow">INTERPRETASI DATA</div><h3 class="section-title">Apa kesimpulan terbaik dari eksperimen faktor pembatas?</h3><p class="section-sub">Pilih penjelasan yang paling sesuai dengan hasil pengamatan.</p><div class="choice-row">${['Meningkatkan satu faktor selalu menaikkan laju fotosintesis tanpa batas.','Laju dipengaruhi faktor yang paling membatasi; suhu juga dapat memiliki kisaran optimum.','Suhu tidak memengaruhi proses fotosintesis karena seluruh tahap berlangsung di kloroplas.','Air hanya berfungsi sebagai pelarut dan tidak terkait dengan fotosintesis.'].map((o,i)=>`<button class="choice ${s.answer===i?'selected':''}" data-sim3ans="${i}">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div><button class="btn btn-primary" id="sim3Check">SIMPULKAN EKSPERIMEN</button><div id="sim3Feedback"></div></div>`;
+ if(s.passed)content+=doneBanner('✓','Eksperimen selesai!','Kamu sudah menarik kesimpulan dari data faktor pembatas.');
+ content+=footer(5,'Masuk Tantangan Sains');
+ shell(content);
+ ['light','co2','water','temp'].forEach(k=>$('#'+k+'Range').addEventListener('input',e=>{
+  state.sim3[k]=+e.target.value;$('#'+k+'Out').textContent=e.target.value+(k==='temp'?'°C':'%');
+  const n=calcRate(+state.sim3.light,+state.sim3.co2,+state.sim3.water,+state.sim3.temp);
+  $('#rateStat strong').innerHTML=n+'<span style="font-size:15px"> / 100</span>';$('#rateStat .progress-fill').style.width=n+'%';$('#rateStat p').textContent=rateText(n);
+ }));
+ $('#recordTrial')?.addEventListener('click',()=>{if(state.sim3.trials.length>=6)return;const q=state.sim3;q.trials.push({light:+q.light,co2:+q.co2,water:+q.water,temp:+q.temp,rate:calcRate(+q.light,+q.co2,+q.water,+q.temp)});renderSim3();notify('Data percobaan berhasil dicatat.')});
+ $$('[data-sim3ans]').forEach(b=>b.addEventListener('click',()=>{state.sim3.answer=+b.dataset.sim3ans;renderSim3()}));
+ $('#sim3Check')?.addEventListener('click',()=>{if(state.sim3.answer===1){state.sim3.passed=true;completeStage(5,'Eksperimen selesai. Tantangan Sains terbuka!')}else $('#sim3Feedback').innerHTML='<div class="feedback no">Coba lagi. Bandingkan kondisi antarpercobaan dan ingat bahwa suhu memiliki respons optimum.</div>'});
+}
+
+/* ===== Tahap 6: Tantangan Sains ===== */
+function normalize(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ')}
+function assessmentScore(){const a=state.assessment;let points=0,correct=0;pgQuestions.forEach((q,i)=>{if(a.pg[i]===q.a){points+=2;correct++}});matchItems.forEach((x,i)=>{if(a.match[i]===i){points+=4;correct++}});fillItems.forEach((x,i)=>{const val=normalize(a.fill[i]||'');if(val&&x.a.map(normalize).includes(val)){points+=2;correct++}});return{points,correct,score:Math.round(points/60*100*100)/100}}
+function renderAssessment(){
+ const a=state.assessment,tab=a.tab||'pg',submitted=a.submitted,score=assessmentScore();
+ let content=head('TAHAP 06 · TANTANGAN SAINS','Baca buktinya. Berpikirlah seperti ilmuwan.','Jawab pertanyaan berdasarkan stimulus. Bacalah narasi, tabel, dan informasi ilmiah sebelum menentukan jawaban.','ASESMEN')+
+ `<div class="grid three"><div class="stat"><strong>24</strong><span>Butir / pasangan</span></div><div class="stat"><strong>70</strong><span>Nilai minimum kelulusan</span></div><div class="stat"><strong>${a.bestScore||0}</strong><span>Nilai terbaik</span></div></div>
+ <div class="assessment-tabs"><button class="tab ${tab==='pg'?'active':''}" data-atab="pg">01 · PILIHAN GANDA (12)</button><button class="tab ${tab==='match'?'active':''}" data-atab="match">02 · MENJODOHKAN (6)</button><button class="tab ${tab==='fill'?'active':''}" data-atab="fill">03 · ISIAN RUMPANG (6)</button></div>
+ <div class="card card-pad">${tab==='pg'?`<div class="eyebrow">PILIHAN GANDA · BERBASIS BUKTI</div><p class="section-sub">Pilih satu jawaban paling tepat untuk setiap stimulus.</p>${pgQuestions.map((q,i)=>`<div class="question-card"><div class="eyebrow">SOAL ${pad2(i+1)} / 12</div><div class="stimulus">${q.stim}</div><div class="question-title">${q.q}</div>${q.o.map((o,j)=>`<label class="option"><input type="radio" name="pg${i}" data-pg="${i}" value="${j}" ${a.pg[i]===j?'checked':''}> <span><b>${String.fromCharCode(65+j)}.</b> ${o}</span></label>`).join('')}${submitted?`<div class="feedback ${a.pg[i]===q.a?'ok':'no'}">${a.pg[i]===q.a?'Benar. ':'Belum tepat. '} ${q.e}</div>`:''}</div>`).join('')}`
+ :tab==='match'?`<div class="eyebrow">MENJODOHKAN · STRUKTUR DAN FUNGSI</div><p class="section-sub">Pasangkan setiap istilah dengan deskripsi yang sesuai. Setiap pasangan benar bernilai 4 poin.</p><div class="callout gold">Stimulus: Pada kloroplas, reaksi terang berlangsung pada membran tilakoid dan siklus Calvin berlangsung di stroma. Kedua rangkaian proses saling terhubung melalui pertukaran ATP dan NADPH.</div>${matchItems.map((x,i)=>`<div class="match-row"><strong>${i+1}. ${x[0]}</strong><select class="select" data-match="${i}"><option value="">Pilih fungsi yang sesuai ...</option>${matchOptions.map((o,j)=>`<option value="${j}" ${a.match[i]===j?'selected':''}>${String.fromCharCode(65+j)}. ${o}</option>`).join('')}</select>${submitted?`<span class="small" style="color:${a.match[i]===i?'var(--green)':'var(--red)'}">${a.match[i]===i?'✓ Tepat':'✕ Jawaban: '+String.fromCharCode(65+i)}</span>`:''}</div>`).join('')}`
+ :`<div class="eyebrow">ISIAN RUMPANG · ISTILAH ILMIAH</div><p class="section-sub">Lengkapi setiap kalimat dengan istilah ilmiah yang tepat. Gunakan istilah singkat atau nama lengkap yang sesuai.</p>${fillItems.map((q,i)=>{const ok=q.a.map(normalize).includes(normalize(a.fill[i]||''));return `<div class="question-card fill-q"><div class="eyebrow">ISIAN ${i+1}/6</div><div class="stimulus">${q.stim}</div><p><b>${q.q}</b></p><input class="field" data-fill="${i}" value="${esc(a.fill[i]||'')}" placeholder="${q.hint}" maxlength="70">${submitted?`<div class="feedback ${ok?'ok':'no'}">${ok?'Benar.':'Belum tepat. '} Jawaban yang diharapkan: ${q.a[0]}</div>`:''}</div>`}).join('')}`}</div>
+ <div class="btn-row" style="justify-content:space-between"><div class="small muted">Jawaban disimpan selama halaman ini terbuka.</div><button class="btn btn-primary" id="submitAssessment">${submitted?'HITUNG ULANG JAWABAN':'KIRIM JAWABAN & LIHAT HASIL'}</button></div>`;
+ if(submitted)content+=`<div class="card card-pad" style="margin-top:14px"><div class="eyebrow">LAPORAN ASESMEN · PERCOBAAN KE-${a.attempts}</div><div class="grid three" style="margin-top:10px"><div class="stat"><strong>${score.correct}/24</strong><span>Jawaban benar</span></div><div class="stat"><strong>${score.points}/60</strong><span>Poin berbobot</span></div><div class="stat"><strong>${score.score}</strong><span>Nilai / 100</span></div></div><div class="feedback ${score.score>=70?'ok':'no'}" style="margin-top:14px">${score.score>=70?'Selamat! Kamu mencapai nilai minimum 70. Tahap refleksi terbuka.':'Nilai belum mencapai 70. Pelajari umpan balik pada setiap soal, perbaiki jawaban, lalu kirim kembali.'} Nilai terbaik yang tercatat: ${a.bestScore}.</div></div>`;
+ content+=footer(6,'Masuk Ruang Refleksi');
+ shell(content);
+ $$('[data-atab]').forEach(b=>b.addEventListener('click',()=>{state.assessment.tab=b.dataset.atab;resetScroll=true;renderAssessment()}));
+ $$('[data-pg]').forEach(el=>el.addEventListener('change',()=>{state.assessment.pg[el.dataset.pg]=+el.value;state.assessment.submitted=false}));
+ $$('[data-match]').forEach(el=>el.addEventListener('change',()=>{state.assessment.match[el.dataset.match]=el.value===''?undefined:+el.value;state.assessment.submitted=false}));
+ $$('[data-fill]').forEach(el=>el.addEventListener('input',()=>{state.assessment.fill[el.dataset.fill]=el.value;state.assessment.submitted=false}));
+ $('#submitAssessment').addEventListener('click',()=>{
+  const res=assessmentScore();a.attempts++;a.submitted=true;
+  if(res.score>a.bestScore){a.bestScore=res.score;a.bestCorrect=res.correct;a.bestPoints=res.points}
+  if(res.score>=70){a.passed=true;state.completed[6]=true;renderAssessment();notify('Tantangan Sains tuntas. Ruang Refleksi terbuka!')}
+  else{renderAssessment();notify('Jawaban diperiksa. Pelajari umpan balik dan coba lagi.')}
+ });
+}
+
+/* ===== Tahap 7: Ruang Refleksi ===== */
+function reflectionComplete(){return ['q1','q2','q3','q4','sentence'].every(k=>(state.reflections[k]||'').trim().length>=8)}
+function renderReflection(){
+ const r=state.reflections;
+ const fields=[['q1','01 · Pengetahuan baru apa tentang fotosintesis yang paling mengubah cara pandangmu terhadap tumbuhan?','Menurut saya, hal yang paling menarik adalah ...'],['q2','02 · Bagian fotosintesis apa yang paling sulit kamu pahami? Mengapa?','Bagian yang masih menantang bagi saya adalah ...'],['q3','03 · Bagaimana hubungan fotosintesis dengan ketersediaan pangan dan keseimbangan oksigen di bumi?','Fotosintesis berhubungan dengan pangan dan oksigen karena ...'],['q4','04 · Jika menjadi peneliti tanaman di lingkunganmu, eksperimen apa yang ingin kamu lakukan?','Saya ingin meneliti ...']];
+ shell(head('TAHAP 07 · RUANG REFLEKSI','Ilmu yang dipahami, makna yang ditemukan.','Tuliskan refleksi dengan kata-katamu sendiri. Tidak ada jawaban benar atau salah; yang dinilai adalah kesungguhan menghubungkan pengetahuan dengan pengalaman dan kehidupan.','RENUNGKAN & HUBUNGKAN')+
+ `<div class="callout blue" style="margin-bottom:14px">Gunakan catatan dari bacaan dan eksperimen sebagai bahan berpikir. Jawaban refleksi akan disertakan dalam sertifikat PDF.</div>
+ <div class="reflection-grid">${fields.map(f=>`<div class="reflection-field"><label for="ref${f[0]}">${f[1]}</label><textarea class="textarea" id="ref${f[0]}" data-ref="${f[0]}" maxlength="450" placeholder="${f[2]}">${esc(r[f[0]])}</textarea><div class="small muted">Minimal 8 karakter · Maksimal 450 karakter</div></div>`).join('')}</div>
+ <div class="card card-pad" style="margin-top:14px"><label for="refsentence" style="display:block;font-weight:800;font-size:13px;margin-bottom:8px">Lengkapi kalimat refleksi berikut:</label><p class="muted small" style="margin:0 0 6px">Setelah mempelajari fotosintesis, saya menyadari bahwa ...</p><textarea class="textarea" id="refsentence" data-ref="sentence" maxlength="180" placeholder="Saya menyadari bahwa ...">${esc(r.sentence)}</textarea></div>
+ <div class="btn-row"><button class="btn btn-primary" id="finishReflection">SIMPAN REFLEKSI & SELESAIKAN →</button><span class="small muted">Semua isian wajib diisi.</span></div>`+footer(7,'Lihat Referensi'));
+ $$('[data-ref]').forEach(el=>el.addEventListener('input',()=>{state.reflections[el.dataset.ref]=el.value}));
+ $('#finishReflection').addEventListener('click',()=>{if(!reflectionComplete()){notify('Lengkapi seluruh refleksi. Setiap jawaban minimal 8 karakter.');return}advanceFrom(7,'Refleksi tersimpan. Silakan lihat referensi.')});
+}
+
+/* ===== Tahap 8: Referensi ===== */
+function renderReferensi(){
+ const done=!!state.completed[8];
+ shell(head('TAHAP 08 · REFERENSI','Referensi','Sumber rujukan yang digunakan dalam penyusunan materi pada aplikasi ini.','DAFTAR PUSTAKA')+
+ `<ol class="refs">
+ <li>Campbell, N.A. &amp; J.B. Reece (2010). <i>Biologi Edisi Kedelapan Jilid 1</i>. Jakarta: Erlangga</li>
+ <li>OpenStax. (n.d.). 8.1 Overview of photosynthesis. <i>Biology 2e</i>. Rice University. <a href="https://openstax.org/books/biology-2e/pages/8-1-overview-of-photosynthesis" target="_blank" rel="noopener noreferrer">https://openstax.org/books/biology-2e/pages/8-1-overview-of-photosynthesis</a></li>
+ <li>Dewi S., dkk. (2022). <i>Biologi untuk SMA/MA Kelas XII</i>. Jakarta: Pusat Perbukuan Kemendikbudristek</li></ol>
+ <div class="btn-row">${done?'':'<button class="btn btn-primary" id="refDone">Saya sudah membaca, lanjut ke sertifikat →</button>'}</div>`+footer(8,'Lihat Sertifikat'));
+ $('#refDone')?.addEventListener('click',()=>{state.finished=true;state.endAt=Date.now();advanceFrom(8,'Seluruh tahap selesai. Sertifikat siap diterbitkan!')});
+}
+
+/* ===== Tahap 9: Sertifikat ===== */
+function renderCertificate(){
+ const a=state.assessment,sc=assessmentScore(),score=a.bestScore||sc.score,correct=a.bestCorrect||sc.correct,when=new Date(state.startAt||Date.now()),t=state.teacher;
+ shell(head('TAHAP 09 · SERTIFIKAT','Perjalanan belajarmu telah selesai.','Semua misi telah diselesaikan. Periksa rekap pembelajaran, lalu unduh sertifikat sebagai dokumen PDF A4.','MISI SELESAI')+
+ (t?`<div class="callout gold" style="margin-bottom:12px">Mode Lorong Guru: sertifikat ini hanya pratinjau. Nama, kelas, nilai, dan durasi bukan data siswa.</div>`:doneBanner('🏆',`Selamat, ${esc(state.profile.name)}!`,'Kamu telah menyelesaikan seluruh rangkaian BIOLERN — Perjalanan Fotosintesis.'))+
+ `<div class="grid three" style="margin:14px 0"><div class="stat"><strong>${score}</strong><span>Nilai terbaik</span></div><div class="stat"><strong>${correct}/24</strong><span>Jawaban benar</span></div><div class="stat"><strong>${fmtDuration(elapsed())}</strong><span>Durasi aktif belajar</span></div></div>
+ <div class="certificate-preview"><div class="eyebrow" style="color:#66866d">BIOLERN · BIOLOGY LITERACY EXPERIENCE</div><div style="font-size:26px;margin:6px">✧</div><h2>SERTIFIKAT</h2><div style="letter-spacing:.17em;font-size:11px;color:#6e8a73;font-weight:800">PENYELESAIAN PEMBELAJARAN</div><p>Diberikan kepada</p><div class="recipient">${esc(state.profile.name)}</div><p>Siswa kelas <b>${esc(state.profile.kelas)}</b> telah menyelesaikan seluruh tahapan pembelajaran interaktif<br>BIOLERN <b>PERJALANAN FOTOSINTESIS</b> pada mata pelajaran Biologi.</p><div class="cert-meta"><span><b>Nilai:</b> ${score}/100</span><span><b>Benar:</b> ${correct}/24</span><span><b>Durasi:</b> ${fmtDuration(elapsed())}</span></div><div style="font-size:10px;color:#718b77">ID ${esc(state.certificateId)} · ${fmtDate(when)} · ${fmtTime(when)} WIB</div><div class="sign"><div style="font-size:11px">Guru Mata Pelajaran Biologi</div><div style="height:40px"></div><b style="text-decoration:underline">Rahmat Hidayat, S.Pd.I, M.Si.</b></div></div>
+ <div class="grid two" style="margin-top:14px"><div class="card card-pad"><div class="eyebrow">CATATAN AKSES</div><p class="small" style="margin:6px 0 0">Mulai akses: <b>${fmtDate(when)} · ${fmtTime(when)} WIB</b></p><p class="small" style="margin:4px 0 0">Durasi aktif: <b>${fmtDuration(elapsed())}</b></p><p class="small" style="margin:4px 0 0">Kelas: <b>${esc(state.profile.kelas)}</b></p><p class="small" style="margin:4px 0 0">ID sertifikat: <b>${esc(state.certificateId)}</b></p></div><div class="card card-pad"><div class="eyebrow">REFLEKSI DISERTAKAN</div><p class="small muted" style="margin:6px 0 10px">Dokumen PDF memuat identitas, waktu akses, durasi aktif, hasil asesmen, seluruh isian refleksi, dan ruang tanda tangan guru.</p><button class="btn btn-gold" id="downloadPdf" style="width:100%">↓ UNDUH SERTIFIKAT PDF (A4)</button></div></div>
+ <div class="callout" style="margin-top:14px">Catatan: data hanya berada di halaman yang sedang terbuka dan akan hilang saat tab ditutup. Unduh PDF sertifikat sebelum menekan tombol Keluar atau menutup tab.</div>`+footer(9));
+ $('#downloadPdf').addEventListener('click',downloadCertificate);
+}
+
+function render(){
+ if(!state.started){if(view==='info')renderInfo();else{view='welcome';renderWelcome()}bindImages();document.title='BIOLERN — Perjalanan Fotosintesis';return}
+ document.title='BIOLERN — '+STAGES[state.currentStage-1].name;
+ const f=[renderTujuan,renderReading,renderSim1,renderSim2,renderSim3,renderAssessment,renderReflection,renderReferensi,renderCertificate][state.currentStage-1];
+ f();bindImages();
+}
+
+// Lightweight offline PDF writer: creates an A4 landscape PDF using standard PDF fonts.
+function pdfSafe(s){return String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[–—]/g,'-').replace(/[→]/g,'->').replace(/[✓]/g,'OK').replace(/[×]/g,'x').replace(/[^\x20-\x7E]/g,' ').replace(/\s+/g,' ').trim()}
+function pdfEscape(s){return pdfSafe(s).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)')}
+function wrapText(str,max){let words=pdfSafe(str).split(' '),lines=[],line='';for(const w of words){if(!w)continue;let next=line?line+' '+w:w;if(next.length>max&&line){lines.push(line);line=w}else line=next}if(line)lines.push(line);return lines.length?lines:['-']}
+function makePDF(){const W=842,H=595,cmd=[];const rgb=(r,g,b)=>`${r.toFixed(3)} ${g.toFixed(3)} ${b.toFixed(3)}`;function rect(x,y,w,h,fill,stroke=null,lw=1){cmd.push(`${rgb(...fill)} rg ${stroke?rgb(...stroke)+' RG '+lw+' w':''} ${x} ${H-y-h} ${w} ${h} re ${stroke?'B':'f'}`)}function line(x1,y1,x2,y2,color=[.65,.72,.66],lw=1){cmd.push(`${rgb(...color)} RG ${lw} w ${x1} ${H-y1} m ${x2} ${H-y2} l S`)}function txt(x,y,text,size=10,color=[.15,.25,.19],font='F1'){cmd.push(`${rgb(...color)} rg BT /${font} ${size} Tf 1 0 0 1 ${x} ${H-y} Tm (${pdfEscape(text)}) Tj ET`)}function paragraph(x,y,text,maxChars,size=8.2,lineH=11,color=[.25,.32,.27],maxLines=5){const lines=wrapText(text,maxChars);lines.slice(0,maxLines).forEach((l,i)=>txt(x,y+i*lineH,l,size,color));if(lines.length>maxLines)txt(x,y+maxLines*lineH-1,'... (teks dipersingkat pada pratinjau sertifikat)',7,[.42,.43,.36]);}
+// page background and frame
+rect(0,0,W,H,[.965,.96,.925]);rect(12,12,W-24,H-24,[.965,.96,.925],[.66,.53,.25],2);rect(20,20,W-40,H-40,[.965,.96,.925],[.76,.67,.43],.6);
+rect(22,22,W-44,100,[.055,.19,.135]);rect(22,119,W-44,3,[.78,.62,.27]);txt(48,48,'BIOLERN  |  BIOLOGY LITERACY EXPERIENCE',9,[.75,.9,.78],'F2');txt(48,83,'SERTIFIKAT',29,[.96,.88,.64],'F2');txt(49,103,'PENYELESAIAN PEMBELAJARAN - FOTOSINTESIS KELAS XII',9,[.9,.95,.9]);
+const p=state.profile,dt=new Date(state.startAt||Date.now()),end=new Date(state.endAt||Date.now()),ass=state.assessment,sc=ass.bestScore||assessmentScore().score,cor=ass.bestCorrect||assessmentScore().correct;
+txt(48,151,'DIBERIKAN KEPADA',8,[.42,.52,.43],'F2');txt(48,181,pdfSafe(p.name).slice(0,58),22,[.08,.26,.16],'F2');line(48,191,455,191,[.69,.57,.32],1.4);txt(48,211,'KELAS  '+pdfSafe(p.kelas),10,[.25,.34,.27],'F2');paragraph(48,232,'Telah menyelesaikan seluruh tahapan pembelajaran interaktif BIOLERN - Perjalanan Fotosintesis pada mata pelajaran Biologi.',76,9.2,13,[.27,.35,.29],2);
+// data panel
+rect(500,139,294,112,[.91,.94,.89],[.73,.8,.7],.8);txt(517,160,'REKAPITULASI PEMBELAJARAN',9,[.17,.38,.23],'F2');line(517,168,777,168,[.75,.8,.72],.6);txt(517,189,'Tanggal akses',8,[.39,.46,.39]);txt(650,189,fmtDate(dt),8.5,[.14,.27,.18],'F2');txt(517,207,'Jam akses',8,[.39,.46,.39]);txt(650,207,fmtTime(dt)+' WIB',8.5,[.14,.27,.18],'F2');txt(517,225,'Durasi aktif',8,[.39,.46,.39]);txt(650,225,fmtDuration(elapsed()),8.5,[.14,.27,.18],'F2');txt(517,243,'Jawaban benar / nilai',8,[.39,.46,.39]);txt(650,243,cor+'/24  |  '+sc+'/100',8.5,[.14,.27,.18],'F2');
+// reflection section
+line(48,267,794,267,[.72,.65,.46],1);txt(48,288,'REFLEKSI SISWA',10,[.13,.34,.2],'F2');txt(48,302,'Ringkasan jawaban refleksi yang ditulis siswa selama pembelajaran.',7.5,[.42,.48,.41]);
+const refs=[['01  PENGETAHUAN BARU',state.reflections.q1],['02  BAGIAN YANG MENANTANG',state.reflections.q2],['03  HUBUNGAN DENGAN KEHIDUPAN',state.reflections.q3],['04  RENCANA EKSPERIMEN',state.reflections.q4]];
+const cardXs=[48,430],cardYs=[317,411],cw=364,ch=84;refs.forEach((r,i)=>{let x=cardXs[i%2],y=cardYs[Math.floor(i/2)];rect(x,y,cw,ch,[.925,.94,.9],[.77,.81,.73],.7);txt(x+12,y+17,r[0],7.4,[.24,.43,.29],'F2');paragraph(x+12,y+34,r[1]||'-',76,8,10,[.22,.29,.23],4)});
+// completion statement / signature
+line(48,507,794,507,[.72,.65,.46],.8);paragraph(48,526,'Setelah mempelajari fotosintesis, saya menyadari bahwa: '+(state.reflections.sentence||'-'),105,8,10,[.25,.32,.26],2);
+txt(580,538,'Guru Mata Pelajaran Biologi',8,[.35,.43,.35]);line(580,558,770,558,[.4,.48,.4],.7);txt(580,572,'Rahmat Hidayat, S.Pd.I, M.Si.',9,[.13,.29,.19],'F2');
+txt(48,572,'ID: '+(state.certificateId||'-')+'  |  Dibuat: '+fmtDate(end)+' '+fmtTime(end)+' WIB',7,[.43,.49,.42]);
+const stream=cmd.join('\n');const objects=[];objects[1]='<< /Type /Catalog /Pages 2 0 R >>';objects[2]='<< /Type /Pages /Kids [3 0 R] /Count 1 >>';objects[3]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>';objects[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';objects[5]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';objects[6]=`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
+let pdf='%PDF-1.4\n%BIOLERN\n',offsets=[0];for(let i=1;i<=6;i++){offsets[i]=pdf.length;pdf+=`${i} 0 obj\n${objects[i]}\nendobj\n`}const xref=pdf.length;pdf+=`xref\n0 7\n0000000000 65535 f \n`;for(let i=1;i<=6;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;return new Blob([pdf],{type:'application/pdf'})}
+function downloadCertificate(){try{const blob=makePDF(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`Sertifikat_BIOLERN_${pdfSafe(state.profile.name).replace(/ /g,'_')||'Siswa'}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);notify('Sertifikat PDF berhasil dibuat.')}catch(e){console.error(e);notify('PDF gagal dibuat pada browser ini. Coba gunakan browser desktop terbaru.')}}
+
+
+fit();render();
+})();
+</script>
+</body>
+</html>
